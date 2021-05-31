@@ -1,0 +1,23 @@
+Package: larkin
+Title: Simulate And Fit Larkin Stock-Recruitment Models
+Version: 0.0.0.9000
+Authors@R: 
+    c(person(given = c("Luke", "A."),
+             family = "Rogers",
+             role = c("aut", "cre"),
+             email = "luke.rogers@dfo-mpo.gc.ca",
+             comment = c(ORCID = "0000-0003-3843-064X"))
+    )
+Description: The 'larkin' package simulates and fits Larkin stock-recruitment models.
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Imports: 
+    patchwork,
+    ggplot2

@@ -1,0 +1,24 @@
+# Rsudio
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# R
+.Rapp.history
+
+# Mac OSX
+.DS_Store
+
+# Overleaf
+/overleaf
+
+# Data
+*.csv
+*.xls
+*.xlsx
+
+# C++
+*.o
+*.so
+inst/doc
