@@ -20,4 +20,11 @@ Suggests:
 VignetteBuilder: knitr
 Imports: 
     patchwork,
-    ggplot2
+    ggplot2,
+    cmdstanr,
+    rstan,
+    shinystan
+Remotes:
+    github::stan-dev/cmdstanr
+Depends: 
+    R (>= 2.10)

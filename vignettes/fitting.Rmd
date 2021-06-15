@@ -1,0 +1,43 @@
+---
+title: "fitting"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{fitting}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(larkin)
+```
+
+```{r data}
+data_list <- list(
+  T = 100,
+  recruits = simulation$R_4[1:100],
+  spawners = simulation$S[1:100],
+  mu_alpha = 2,
+  sd_alpha = 1,
+  mu_beta = rep(1, 4),
+  sd_beta = rep(2, 4)
+)
+
+```
+
+```{r fitting}
+# Fit
+m1 <- larkin(data_list)
+
+# Visualize
+# rstan::plot(m1$samples)
+# s1 <- shinystan::as.shinystan(m1$samples)
+# shinystan::launch_shinystan(s1)
+
+```
