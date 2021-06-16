@@ -22,3 +22,7 @@
 *.o
 *.so
 inst/doc
+
+# Stan
+larkin_threads
+
