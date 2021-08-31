@@ -22,7 +22,7 @@
 #'
 sim <- function(
   a = 7,
-  b = rep(1, 4),
+  b = c(6e-4, 2e-4, 1e-4, 1e-4),
   init = rep(1, 8),
   h = 0.2,
   p_bar = c(0.003, 0.917, 0.08),
@@ -91,6 +91,7 @@ sim <- function(
   # Return simulated data ------------------------------------------------------
 
   N <- data.frame(
+    Index = seq_along(ind_data),
     R_3 = R[ind_data, 1],
     R_4 = R[ind_data, 2],
     R_5 = R[ind_data, 3],
