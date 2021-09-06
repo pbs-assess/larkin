@@ -24,5 +24,7 @@
 inst/doc
 
 # Stan
-larkin_threads
-
+inst/stan/larkin
+inst/stan/larkin_threads
+inst/stan/ricker
+inst/stan/ricker_threads
