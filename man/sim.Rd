@@ -5,22 +5,19 @@
 \title{Simulate Sockeye Dynamics From A Larkin Stock-Recruitment Model}
 \usage{
 sim(
-  a = 7,
-  b = c(6e-04, 2e-04, 1e-04, 1e-04),
+  a = 2,
+  b = c(6, 2, 1, 1),
   init = rep(1, 8),
   h = 0.2,
   p_bar = c(0.003, 0.917, 0.08),
-  omega = 0.6,
-  rho = 0.5,
   sigma = 0.8,
-  phi_1 = 0.1,
   burn = 100,
   span = 1000,
   seed = NULL
 )
 }
 \arguments{
-\item{a}{\code{\link[=numeric]{numeric()}} per-capita population growth rate at low abundance}
+\item{a}{\code{\link[=numeric]{numeric()}} per-capita log population growth rate at low abundance}
 
 \item{b}{\code{\link[=numeric]{numeric()}} \code{\link[=vector]{vector()}} density dependence parameters}
 
@@ -30,13 +27,7 @@ sim(
 
 \item{p_bar}{\code{\link[=numeric]{numeric()}} \code{\link[=vector]{vector()}} mean age at maturity proportions}
 
-\item{omega}{\code{\link[=numeric]{numeric()}} age at maturity proportion deviation parameter}
-
-\item{rho}{\code{\link[=numeric]{numeric()}} process error autocorrelation parameter}
-
 \item{sigma}{\code{\link[=numeric]{numeric()}} process error standard deviation parameter}
-
-\item{phi_1}{\code{\link[=numeric]{numeric()}} initial process error deviation}
 
 \item{burn}{\code{\link[=integer]{integer()}} number of burn-in steps before the simulation}
 
