@@ -60,20 +60,20 @@ of simulations with the intial spawner abundances `rep(1, 8)` and
 `c(25, 5, 1, 1, 25, 5, 1, 1) * 0.05` converged after roughly 100 iterations.
 
 ```{r par-values}
-s1 <- sim(
-  a = 7, # Per-capita population growth rate at low spawner abundance
-  b = rep(1, 4), # Density dependence parameters for spawners and lags
-  init = rep(1, 8), # Initial spawner abundances
-  h = 0.2, # Constant harvest rate
-  p_bar = c(0.003, 0.917, 0.08), # Age at maturity mean proportions
-  omega = 0.6, # Age at maturity proportion deviation parameter
-  rho = 0.5, # Process error autocorrelation parameter
-  sigma = 0.8, # Process error standard deviation parameter
-  phi_1 = 0.1, # Initial process error deviation
-  burn = 100, # Number of burn-in steps before the simulation
-  span = 1000, # Number of steps in the simulation
-  seed = 109 # Seed value for set.seed()
-)
+# s1 <- sim(
+#   a = 7, # Per-capita population growth rate at low spawner abundance
+#   b = rep(1, 4), # Density dependence parameters for spawners and lags
+#   init = rep(1, 8), # Initial spawner abundances
+#   h = 0.2, # Constant harvest rate
+#   p_bar = c(0.003, 0.917, 0.08), # Age at maturity mean proportions
+#   omega = 0.6, # Age at maturity proportion deviation parameter
+#   rho = 0.5, # Process error autocorrelation parameter
+#   sigma = 0.8, # Process error standard deviation parameter
+#   phi_1 = 0.1, # Initial process error deviation
+#   burn = 100, # Number of burn-in steps before the simulation
+#   span = 1000, # Number of steps in the simulation
+#   seed = 109 # Seed value for set.seed()
+# )
 
 ```
 
@@ -83,20 +83,20 @@ and first 1000 (bottom). I distinguished the brood lines by colour to show the
 changes in cyclic dominance over time (top only).
 
 ```{r sim-figure, fig.width = 7.15, fig.height = 5, fig.retina = 2, fig.cap = "Simulated spawner abundance during first 100 time steps (top) and first 1000 time steps (bottom)."}
-
-p1 <- ggplot(s1[1:100, ]) +
-  geom_line(aes(x = seq_along(S), y = S)) +
-  geom_point(aes(x = seq_along(S), y = S, color = factor(rep(1:4, 25)))) +
-  scale_color_grey() +
-  labs(x = "Time", y = expression(Spawners~(10^6)), color = "Brood line") +
-  theme_bw()
-
-p2 <- ggplot(s1, aes(x = seq_along(S), y = S)) +
-  geom_line() +
-  labs(x = "Time", y = expression(Spawners~(10^6))) +
-  theme_bw()
-  
-p1 / p2
+# 
+# p1 <- ggplot(s1[1:100, ]) +
+#   geom_line(aes(x = seq_along(S), y = S)) +
+#   geom_point(aes(x = seq_along(S), y = S, color = factor(rep(1:4, 25)))) +
+#   scale_color_grey() +
+#   labs(x = "Time", y = expression(Spawners~(10^6)), color = "Brood line") +
+#   theme_bw()
+# 
+# p2 <- ggplot(s1, aes(x = seq_along(S), y = S)) +
+#   geom_line() +
+#   labs(x = "Time", y = expression(Spawners~(10^6))) +
+#   theme_bw()
+#   
+# p1 / p2
 
 ```
 

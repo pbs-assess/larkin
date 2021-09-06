@@ -19,21 +19,35 @@ library(larkin)
 ```
 
 ```{r data}
-data_list <- list(
+# Data
+data_ricker <- list(
   T = 100,
-  recruits = simulation$R_4[1:100],
-  spawners = simulation$S[1:100],
-  mu_alpha = 2,
-  sd_alpha = 1,
-  mu_beta = rep(1, 4),
-  sd_beta = rep(2, 4)
+  R = simulation$R_4[1:100],
+  S = simulation$S[1:100],
+  mu_a = 2,
+  sd_a = 0.5,
+  min_b = 0,
+  max_b = 20
+)
+
+data_larkin <- list(
+  T = 100,
+  R = simulation$R_4[1:100],
+  S = simulation$S[1:100],
+  mu_a = 2,
+  sd_a = 0.5,
+  min_b = rep(0, 4),
+  max_b = rep(20, 4)
 )
 
 ```
 
 ```{r fitting}
 # Fit
-m1 <- larkin(data_list)
+# m0 <- ricker(data_ricker)
+# 
+# m1 <- larkin(data_larkin)
+
 
 # Visualize
 # rstan::plot(m1$samples)
