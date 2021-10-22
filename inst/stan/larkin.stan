@@ -1,43 +1,54 @@
 data {
   // Constants
-  int<lower=0> T; // Number of brood years
+  int<lower=5> T; // Number of brood years
   // Observations
-  real R[T]; // Array of recruit abundance
-  real S[T]; // Array of spawner abundance
-  // Prior parameters
-  real mu_a;
-  real sd_a;
-  real<lower=0> min_b[4];
-  real<lower=0> max_b[4];
+  real<lower=0> recruits[T]; // Recruitment abundance
+  real<lower=0> spawners[T]; // Spawner abundance
+  // Prior means
+  real mu_alpha;
+  real mu_beta[4];
+  real mu_sigma;
+  // Prior standard deviations
+  real<lower=0> sd_alpha;
+  real<lower=0> sd_beta;
+  real<lower=0> sd_sigma;
+  // Fudge factors
+  real<lower=0> fudge;
 }
 
 transformed data {
-  real R_fudge[T];
+  // Response variable: log recruits per spawner
+  real y[T];
   for (t in 1:T) {
-    R_fudge[t] = R[t] + 1e-6;
+    y[t] = log((recruits[t] + fudge) / (spawners[t] + fudge));
   }
 }
 
 parameters {
-  real a; // Per-capita log population growth rate at low abundance
-  real<lower=0> b[4]; // Density dependence parameters
-  real<lower=0> sigma; // Process error standard deviation
+  // Demographic rates
+  real alpha; // Per-captica population growth rate at low abundance
+  real<lower=0> beta[4]; // Density dependent mortality parameters
+  // Process error
+  real<lower=0> sigma;
 }
 
 model {
-  real log_R_hat;
+  // Predicted response
+  real y_hat[T];
+  y_hat[1] = alpha - beta[1] * spawners[1];
+  y_hat[2] = alpha - beta[1] * spawners[2] - beta[2] * spawners[1];
+  y_hat[3] = alpha - beta[1] * spawners[3] - beta[2] * spawners[2] - beta[3] * spawners[1];
   for (t in 4:T) {
-    // Compute log predicted recruits
-    log_R_hat = log(S[t])
-    + a
-    - b[1] * S[t]
-    - b[2] * S[t - 1]
-    - b[3] * S[t - 2]
-    - b[4] * S[t - 3];
-    // Define sampling statement
-    R_fudge[t] ~ lognormal(log_R_hat, sigma);
+    y_hat[t] = alpha
+    - beta[1] * spawners[t]
+    - beta[2] * spawners[t - 1]
+    - beta[3] * spawners[t - 2]
+    - beta[4] * spawners[t - 3];
   }
-  // Define priors
-  a ~ normal(mu_a, sd_a);
-  b ~ uniform(min_b, max_b);
+  // Priors
+  alpha ~ normal(mu_alpha, sd_alpha);
+  beta ~ normal(mu_beta, sd_beta);
+  sigma ~ normal(mu_sigma, sd_sigma);
+  // Sampling statement
+  y ~ normal(y_hat, sigma);
 }
