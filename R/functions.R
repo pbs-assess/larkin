@@ -106,10 +106,12 @@ sim <- function (alpha = 2,
 
   # Initialize state variables -------------------------------------------------
 
+  returns <- rep(NA_real_, num_iter)
   spawners <- c(init, rep(NA_real_, num_iter - num_init))
   r_3 <- rep(NA_real_, num_iter)
   r_4 <- rep(NA_real_, num_iter)
   r_5 <- rep(NA_real_, num_iter)
+  recruits <- rep(NA_real_, num_iter)
 
   # Initialize proportions -----------------------------------------------------
 
@@ -135,15 +137,16 @@ sim <- function (alpha = 2,
       r_3[i] <- p_t[i, 1] * spawners[i] * growth
       r_4[i] <- p_t[i, 2] * spawners[i] * growth
       r_5[i] <- p_t[i, 3] * spawners[i] * growth
+      recruits[i] <- r_3[i] + r_4[i] + r_5[i]
     }
     # Spawners
     if (i >= 8 & i < num_iter) {
       # Harvest
       h_t[i + 1] <- harvest
       # Returns
-      returns <- sum(r_5[i - 4], r_4[i - 3], r_3[i - 2])
+      returns[i + 1] <- sum(r_5[i - 4], r_4[i - 3], r_3[i - 2])
       # Spawners
-      spawners[i + 1] <- (1 - h_t[i + 1]) * returns
+      spawners[i + 1] <- (1 - h_t[i + 1]) * returns[i + 1]
       # Extirpation
       if (spawners[i + 1] < extirp) {
         spawners[i + 1] <- 0
@@ -155,9 +158,11 @@ sim <- function (alpha = 2,
 
   tibble::tibble(
     time = seq_along(ind_data),
+    returns = returns[ind_data],
+    spawners = spawners[ind_data],
     r_3 = r_3[ind_data],
     r_4 = r_4[ind_data],
     r_5 = r_5[ind_data],
-    spawners = spawners[ind_data]
+    recruits = recruits[ind_data]
   )
 }
