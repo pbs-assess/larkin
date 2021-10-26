@@ -26,5 +26,9 @@ inst/doc
 # Stan
 inst/stan/larkin
 inst/stan/larkin_threads
+inst/stan/larkin_forecast
+inst/stan/larkin_forecast_threads
 inst/stan/ricker
 inst/stan/ricker_threads
+inst/stan/ricker_forecast
+inst/stan/ricker_forecast_threads
