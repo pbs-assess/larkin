@@ -56,6 +56,77 @@ fit <- function (data,
     class = model)
 }
 
+#' Forecast From A Ricker Or Larkin Model Using Previous Values Only
+#'
+#' @param inds [numeric()] [vector()] of time indexes
+#' @param data [list()]
+#' @param model [character()] either \code{"larkin"} or \code{"ricker"}
+#' @param cores [numeric()] number of cores for parallel processing
+#' @param chains [integer()] number of chains
+#' @param step_size [integer()] initial step size
+#' @param iter_warmup [integer()] number of warmup iterations
+#' @param iter_sampling [integer()] number of sampling iterations
+#' @param ... additional arguments to pass to \code{$sample()} method
+#'
+#' @importFrom rlang .data
+#'
+#' @return [tibble::tibble()]
+#' @export
+#'
+forecast <- function (inds,
+                      data,
+                      model = "larkin",
+                      cores = NULL,
+                      chains = 1,
+                      step_size = 0.01,
+                      iter_warmup = 250,
+                      iter_sampling = 750,
+                      ...) {
+
+  # Check arguments ------------------------------------------------------------
+
+  checkmate::assert_list(data, c("double", "integer"))
+  checkmate::assert_choice(model, c("larkin", "ricker"))
+
+  # Apply forecasting ----------------------------------------------------------
+
+  if (is.null(cores)) {
+    # Apply in sequence
+    output <- lapply(
+      inds,
+      FUN = forecast_single_value,
+      data = data,
+      model = model,
+      chains = chains,
+      step_size = step_size,
+      iter_warmup = iter_warmup,
+      iter_sampling = iter_sampling,
+      ...
+    )
+  } else {
+    if (.Platform$OS.type == "unix") {
+      output <- parallel::mclapply(
+        inds,
+        FUN = forecast_single_value,
+        data = data,
+        model = model,
+        chains = chains,
+        step_size = step_size,
+        iter_warmup = iter_warmup,
+        iter_sampling = iter_sampling,
+        ...,
+        mc.cores = cores
+      )
+    } else {
+      stop("parallel forecast via sockets not yet implemented R/utils.R")
+    }
+  }
+
+  # Return forecasts -----------------------------------------------------------
+
+  dplyr::bind_rows(output)
+}
+
 #' Simulate Sockeye Dynamics From A Larkin Stock-Recruitment Model
 #'
 #' @param alpha [numeric()] per-capita log population growth rate at low
