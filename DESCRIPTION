@@ -25,7 +25,11 @@ Imports:
     rstan,
     shinystan,
     checkmate,
-    tibble
+    tibble,
+    parallel,
+    rlang,
+    dplyr,
+    magrittr
 Remotes:
     github::stan-dev/cmdstanr
 Depends: 
