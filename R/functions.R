@@ -58,9 +58,10 @@ fit <- function (data,
 
 #' Forecast From A Ricker Or Larkin Model Using Previous Values Only
 #'
-#' @param inds [numeric()] [vector()] of time indexes
+#' @param inds [numeric()] [vector()] indexes of values to forecast
 #' @param data [list()]
 #' @param model [character()] either \code{"larkin"} or \code{"ricker"}
+#' @param window [integer()] length of the buffer between training and forecast
 #' @param cores [numeric()] number of cores for parallel processing
 #' @param chains [integer()] number of chains
 #' @param step_size [integer()] initial step size
@@ -76,6 +77,7 @@ fit <- function (data,
 forecast <- function (inds,
                       data,
                       model = "larkin",
+                      window = 10,
                       cores = NULL,
                       chains = 1,
                       step_size = 0.01,
@@ -88,12 +90,17 @@ forecast <- function (inds,
   checkmate::assert_list(data, c("double", "integer"))
   checkmate::assert_choice(model, c("larkin", "ricker"))
 
+  # Define indexes -------------------------------------------------------------
+
+  inds_forecast <- unique(c(inds - window, inds))
+  inds_return <- inds
+
   # Apply forecasting ----------------------------------------------------------
 
   if (is.null(cores)) {
     # Apply in sequence
     output <- lapply(
-      inds,
+      inds_forecast,
       FUN = forecast_single_value,
       data = data,
       model = model,
@@ -106,7 +113,7 @@ forecast <- function (inds,
   } else {
     if (.Platform$OS.type == "unix") {
       output <- parallel::mclapply(
-        inds,
+        inds_forecast,
         FUN = forecast_single_value,
         data = data,
         model = model,
@@ -124,7 +131,29 @@ forecast <- function (inds,
 
   # Return forecasts -----------------------------------------------------------
 
-  dplyr::bind_rows(output)
+  dplyr::bind_rows(output) %>%
+    dplyr::arrange(.data$time) %>%
+    dplyr::mutate(
+      # Metrics
+      re = re(.data$observed, .data$forecast),
+      pe = pe(.data$observed, .data$forecast),
+      ape = ape(.data$observed, .data$forecast),
+      aape = aape(.data$observed, .data$forecast),
+      # Running metrics
+      cmre = runner::runner(.data$re, f = mean_or_na),
+      cmae = runner::runner(abs(.data$re), f = mean_or_na),
+      cmpe = runner::runner(.data$pe, f = mean_or_na),
+      cmape = runner::runner(.data$ape, f = mean_or_na),
+      cmaape = runner::runner(.data$aape, f = mean_or_na),
+      crmse = runner::runner(.data$re, f = rms_or_na),
+      crho = runner::runner(
+        matrix(c(.data$observed, .data$forecast), ncol = 2),
+        f = rho_or_na
+      )
+    ) %>%
+    dplyr::filter(
+      .data$time %in% inds_return
+    )
 }
 
 #' Simulate Sockeye Dynamics From A Larkin Stock-Recruitment Model

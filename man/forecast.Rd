@@ -8,6 +8,7 @@ forecast(
   inds,
   data,
   model = "larkin",
+  window = 10,
   cores = NULL,
   chains = 1,
   step_size = 0.01,
@@ -17,11 +18,13 @@ forecast(
 )
 }
 \arguments{
-\item{inds}{\code{\link[=numeric]{numeric()}} \code{\link[=vector]{vector()}} of time indexes}
+\item{inds}{\code{\link[=numeric]{numeric()}} \code{\link[=vector]{vector()}} indexes of values to forecast}
 
 \item{data}{\code{\link[=list]{list()}}}
 
 \item{model}{\code{\link[=character]{character()}} either \code{"larkin"} or \code{"ricker"}}
+
+\item{window}{\code{\link[=integer]{integer()}} length of the buffer between training and forecast}
 
 \item{cores}{\code{\link[=numeric]{numeric()}} number of cores for parallel processing}
 

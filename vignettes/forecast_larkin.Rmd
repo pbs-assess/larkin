@@ -56,9 +56,10 @@ data <- list(
 if (FALSE) {
   # forecast
   f1 <- forecast(
-    inds = 75:100,
+    inds <- 75:100,
     data = data,
     model = "larkin",
+    window = 10,
     cores = 4,
     chains = 1,
     step_size = 0.01,

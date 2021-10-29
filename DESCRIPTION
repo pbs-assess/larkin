@@ -29,7 +29,8 @@ Imports:
     parallel,
     rlang,
     dplyr,
-    magrittr
+    magrittr,
+    runner
 Remotes:
     github::stan-dev/cmdstanr
 Depends: 
