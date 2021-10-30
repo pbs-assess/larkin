@@ -1,6 +1,6 @@
 Package: larkin
 Title: Simulate And Fit Larkin Stock-Recruitment Models
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: 
     c(person(given = c("Luke", "A."),
              family = "Rogers",
