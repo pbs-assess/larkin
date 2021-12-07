@@ -167,6 +167,8 @@ forecast <- function (inds,
 #' @param burn [integer()] number of burn-in steps before the simulation
 #' @param span [integer()] number of steps in the simulation
 #' @param harvest [numeric()] harvest rate
+#' @param gamma [numeric()] environmental variable influence parameter
+#' @param x_phi [numeric()] environmental variable autocorrelation parameter
 #' @param extirp [numeric()] extirpation threshold
 #' @param seed [integer()] passed internally to [set.seed()]
 #'
@@ -185,6 +187,8 @@ sim <- function (alpha = 2,
                  burn = 100,
                  span = 100,
                  harvest = 0.2,
+                 gamma = 0,
+                 x_phi = 0,
                  extirp = 1e-6,
                  seed = NULL) {
 
@@ -218,6 +222,10 @@ sim <- function (alpha = 2,
   h_t <- rep(NA_real_, num_iter)
   p_t <- matrix(NA_real_, nrow = num_iter, ncol = 3L)
 
+  # Initialize environmental variable ------------------------------------------
+
+  x <- rep(NA_real_, num_iter)
+
   # Initialize process error ---------------------------------------------------
 
   epsilon <- rep(NA_real_, num_iter)
@@ -227,12 +235,20 @@ sim <- function (alpha = 2,
   for (i in seq_len(num_iter)) {
     # Define proportions
     p_t[i, ] <- p_bar
+    # Define environmental influence
+    if (i == 1) {
+      x[i] <- stats::rnorm(1, 0, 1)
+    } else {
+      x[i] <- x_phi * x[i - 1] + stats::rnorm(1, 0, 1)
+    }
     # Define process error
-    epsilon[i] <- stats::rnorm(1, 0, sigma)
+    epsilon <- stats::rnorm(1, 0, sigma)
     # Recruitment
     if (i >= 4) {
       # Realized growth rate
-      growth <- exp(alpha + sum(-beta * spawners[i:(i - 3)]) + epsilon[i])
+      ddmort <- sum(-beta * spawners[i:(i - 3)])
+      envir <- gamma * x[i]
+      growth <- exp(alpha + ddmort + envir + epsilon)
       # Recruitment
       r_3[i] <- p_t[i, 1] * spawners[i] * growth
       r_4[i] <- p_t[i, 2] * spawners[i] * growth
@@ -258,6 +274,7 @@ sim <- function (alpha = 2,
 
   tibble::tibble(
     time = seq_along(ind_data),
+    x = x[ind_data],
     returns = returns[ind_data],
     spawners = spawners[ind_data],
     r_3 = r_3[ind_data],

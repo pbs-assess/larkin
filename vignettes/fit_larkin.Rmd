@@ -32,6 +32,8 @@ s <- sim(
   burn = 100,
   span = span,
   harvest = 0.2,
+  gamma = 0,
+  x_phi = 0,
   extirp = 1e-6,
 )
 

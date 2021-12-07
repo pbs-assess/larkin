@@ -13,6 +13,8 @@ sim(
   burn = 100,
   span = 100,
   harvest = 0.2,
+  gamma = 0,
+  x_phi = 0,
   extirp = 1e-06,
   seed = NULL
 )
@@ -34,6 +36,10 @@ spawner abundance}
 \item{span}{\code{\link[=integer]{integer()}} number of steps in the simulation}
 
 \item{harvest}{\code{\link[=numeric]{numeric()}} harvest rate}
+
+\item{gamma}{\code{\link[=numeric]{numeric()}} environmental variable influence parameter}
+
+\item{x_phi}{\code{\link[=numeric]{numeric()}} environmental variable autocorrelation parameter}
 
 \item{extirp}{\code{\link[=numeric]{numeric()}} extirpation threshold}
 
