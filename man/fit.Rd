@@ -6,7 +6,6 @@
 \usage{
 fit(
   data,
-  model = "larkin",
   chains = 1,
   step_size = 0.01,
   iter_warmup = 250,
@@ -16,8 +15,6 @@ fit(
 }
 \arguments{
 \item{data}{\code{\link[=list]{list()}}}
-
-\item{model}{\code{\link[=character]{character()}} either \code{"larkin"} or \code{"ricker"}}
 
 \item{chains}{\code{\link[=integer]{integer()}} number of chains}
 

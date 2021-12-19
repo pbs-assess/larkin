@@ -4,12 +4,12 @@
 \alias{mape}
 \title{Mean Absolute Percentage Error}
 \usage{
-mape(a, f)
+mape(x, y)
 }
 \arguments{
-\item{a}{\code{\link[=numeric]{numeric()}} \code{\link[=vector]{vector()}} of actual values}
+\item{x}{\link[=vector]{numeric()} observed values}
 
-\item{f}{\code{\link[=numeric]{numeric()}} \code{\link[=vector]{vector()}} of forecast values}
+\item{y}{\link[=vector]{numeric()} forecast values}
 }
 \value{
 \code{\link[=numeric]{numeric()}} mean absolute percentage error

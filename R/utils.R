@@ -2,7 +2,6 @@
 #'
 #' @param index [numeric()]
 #' @param data [list()]
-#' @param model [character()] either \code{"larkin"} or \code{"ricker"}
 #' @param chains [integer()] number of chains
 #' @param step_size [integer()] initial step size
 #' @param iter_warmup [integer()] number of warmup iterations
@@ -16,7 +15,6 @@
 #'
 forecast_single_value <- function (index,
                                    data,
-                                   model = "larkin",
                                    chains = 1,
                                    step_size = 0.01,
                                    iter_warmup = 250,
@@ -26,24 +24,26 @@ forecast_single_value <- function (index,
   # Check arguments ------------------------------------------------------------
 
   checkmate::assert_list(data, c("double", "integer"))
-  checkmate::assert_choice(model, c("larkin", "ricker"))
+  # checkmate::assert_choice(model, c("larkin", "ricker"))
 
   # Truncate data --------------------------------------------------------------
 
-  data$T <- index
+  data$N <- index
   data$recruits <- data$recruits[seq_len(index)]
   data$spawners <- data$spawners[seq_len(index)]
+  data$environs <- data$environs[seq_len(min(nrow(data$environs), index)), ]
+
 
   # Create model object --------------------------------------------------------
 
   mod <- cmdstanr::cmdstan_model(
-    system.file("stan", paste0(model, "_forecast.stan"), package = "larkin"),
+    system.file("stan", paste0("forecast", ".stan"), package = "larkin"),
     include_path = system.file("stan", package = "larkin")
   )
 
   # Fit the model --------------------------------------------------------------
 
-  cmdfit <- mod$sample(
+  fit <- mod$sample(
     data = data,
     chains = chains,
     step_size = step_size,
@@ -54,20 +54,67 @@ forecast_single_value <- function (index,
 
   # Extract forecast -----------------------------------------------------------
 
-  cmdfit$summary() %>%
-    dplyr::filter(.data$variable %in% c("forecast")) %>%
-    dplyr::mutate(
-      time = as.integer(index),
-      observed = data$recruits[index],
-      forecast = .data$mean
-    ) %>%
+  # Placate R-CMD-check
+  forecast <- NULL
+
+  # Return forecast
+  fit %>%
+    tidybayes::spread_draws(forecast) %>%
+    tidybayes::summarise_draws() %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(time = as.integer(index)) %>%
+    dplyr::mutate(observed = data$recruits[index]) %>%
+    dplyr::mutate(forecast = .data$mean) %>%
     dplyr::select(
       .data$time,
       .data$observed,
       .data$forecast,
-      .data$sd,
-      .data$rhat,
-      .data$ess_bulk,
-      .data$ess_tail
+      .data$median:.data$ess_tail
     )
 }
+
+#' Summarise Posterior Draws
+#'
+#' @param x [cmdstanr::sample()] model fit object
+#' @param data [list()] model data
+#'
+#' @return [list()]
+#' @export
+#'
+summarise_posterior_draws <- function (x, data) {
+  # Placate R-CMD-check
+  index <- NULL
+  # lp__
+  lp__ <- tidybayes::spread_draws(x, lp__) %>%
+    tidybayes::summarise_draws() %>%
+    dplyr::ungroup()
+  # Productivity
+  alpha <- tidybayes::spread_draws(x, alpha) %>%
+    tidybayes::summarise_draws() %>%
+    dplyr::ungroup()
+  # Denisty dependence
+  beta <- tidybayes::spread_draws(x, beta[index]) %>%
+    tidybayes::summarise_draws() %>%
+    dplyr::ungroup()
+  # Environmental
+  if (data$G == 0) {
+    gamma <- tibble::tibble()
+  } else {
+    gamma <- tidybayes::spread_draws(x, gamma[index]) %>%
+      tidybayes::summarise_draws() %>%
+      dplyr::ungroup()
+  }
+  # Standard deviation
+  sigma <- tidybayes::spread_draws(x, sigma) %>%
+    tidybayes::summarise_draws() %>%
+    dplyr::ungroup()
+  # Return list
+  list(
+    lp__ = lp__,
+    alpha = alpha,
+    beta = beta,
+    gamma = gamma,
+    sigma = sigma
+  )
+}
+

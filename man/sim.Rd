@@ -6,15 +6,16 @@
 \usage{
 sim(
   alpha = 2,
-  beta = c(8, 6, 4, 2),
+  beta = c(-8, -6, -4, -2),
   init = rep(0.1, 8),
   p_bar = c(0.003, 0.917, 0.08),
+  phi = 0,
   sigma = 0.1,
   burn = 100,
   span = 100,
   harvest = 0.2,
-  gamma = 0,
-  x_phi = 0,
+  gamma = NULL,
+  covars = NULL,
   extirp = 1e-06,
   seed = NULL
 )
@@ -29,6 +30,8 @@ spawner abundance}
 
 \item{p_bar}{\code{\link[=numeric]{numeric()}} \code{\link[=vector]{vector()}} mean age at maturity proportions}
 
+\item{phi}{\code{\link[=numeric]{numeric()}} process error autocorrelation parameter}
+
 \item{sigma}{\code{\link[=numeric]{numeric()}} process error standard deviation parameter}
 
 \item{burn}{\code{\link[=integer]{integer()}} number of burn-in steps before the simulation}
@@ -39,7 +42,7 @@ spawner abundance}
 
 \item{gamma}{\code{\link[=numeric]{numeric()}} environmental variable influence parameter}
 
-\item{x_phi}{\code{\link[=numeric]{numeric()}} environmental variable autocorrelation parameter}
+\item{covars}{\code{\link[tibble:tibble]{tibble::tibble()}} environmental variables}
 
 \item{extirp}{\code{\link[=numeric]{numeric()}} extirpation threshold}
 
@@ -53,5 +56,8 @@ Simulate Sockeye Dynamics From A Larkin Stock-Recruitment Model
 }
 \examples{
 s1 <- sim()
+
+covars <- simulate_environmental_covariates(100, rep(0, 3), 0.5, 1)
+s2 <- sim(gamma = rep(0.5, 3), covars = covars)
 
 }

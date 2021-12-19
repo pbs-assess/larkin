@@ -1,51 +1,109 @@
+#' Absolute Lag-1-Scaled Error
+#'
+#' @param x [numeric()] [vector()] actual values
+#' @param y [numeric()] [vector()] forecast values
+#'
+#' @return [numeric()] [vector()] absolute scaled errors
+#' @export
+#'
+#' @examples
+#' x <- seq(0, 10, 0.1)
+#' y <- seq(10, 0, -0.1)
+#' m <- abs_lag1_scaled_error(x, y)
+#' plot(m, type = "l")
+#'
+abs_lag1_scaled_error <- function (x, y) {
+  # Check arguments
+  checkmate::assert_numeric(x, finite = TRUE, min.len = 1)
+  checkmate::assert_numeric(y, finite = TRUE, min.len = 1)
+  checkmate::assert_vector(x, strict = TRUE)
+  checkmate::assert_vector(y, strict = TRUE)
+  checkmate::assert_true(length(x) == length(y))
+  # Return value
+  return(abs(y - x) / mean(abs(x - dplyr::lag(x)), na.rm = TRUE))
+}
+
+#' Absolute Mean-Scaled Error
+#'
+#' @param x [numeric()] [vector()] observed values
+#' @param y [numeric()] [vector()] forecast values
+#'
+#' @return [numeric()] [vector()] absolute scaled errors
+#' @export
+#'
+#' @examples
+#' x <- seq(0, 10, 0.1)
+#' y <- seq(10, 0, -0.1)
+#' m <- abs_mean_scaled_error(x, y)
+#' plot(m, type = "l")
+#'
+abs_mean_scaled_error <- function (x, y) {
+  # Check arguments
+  checkmate::assert_numeric(x, finite = TRUE, min.len = 1)
+  checkmate::assert_numeric(y, finite = TRUE, min.len = 1)
+  checkmate::assert_vector(x, strict = TRUE)
+  checkmate::assert_vector(y, strict = TRUE)
+  checkmate::assert_true(length(x) == length(y))
+  # Return value
+  return(abs(y - x) / mean(abs(x - mean(x, na.rm = TRUE)), na.rm = TRUE))
+}
+
+#' Absolute Percentage Error
+#'
+#' @param x [numeric()] [vector()] actual values
+#' @param y [numeric()] [vector()] forecast values
+#'
+#' @return [numeric()] [vector()] absolute percentage errors
+#' @export
+#'
+#' @examples
+#' x <- seq(0, 10, 0.1)
+#' y <- seq(10, 0, -0.1)
+#' m <- abs_pct_error(x, y)
+#' plot(m, type = "l")
+#'
+abs_pct_error <- function (x, y) {
+  # Check arguments
+  checkmate::assert_numeric(x, finite = TRUE, min.len = 1)
+  checkmate::assert_numeric(y, finite = TRUE, min.len = 1)
+  checkmate::assert_vector(x, strict = TRUE)
+  checkmate::assert_vector(y, strict = TRUE)
+  checkmate::assert_true(length(x) == length(y))
+  # Return value
+  return(abs((y - x) / x))
+}
+
 #' Arctangent Absolute Percentage Error
 #'
-#' @param a [numeric()] [vector()] of actual values
-#' @param f [numeric()] [vector()] of forecast values
+#' @param x [numeric()] [vector()] actual values
+#' @param y [numeric()] [vector()] forecast values
 #'
-#' @return [numeric()] [vector()] of arctangent absolute percentage errors
+#' @return [numeric()] [vector()] arctangent absolute percentage errors
 #' @export
 #'
 #' @references Kim and Kim 2016 doi.org/10.1016/j.ijforecast.2015.12.003
 #'
 #' @examples
-#' a <- seq(0, 10, 0.1)
-#' f <- seq(10, 0, -0.1)
-#' m <- aape(a, f)
+#' x <- seq(0, 10, 0.1)
+#' y <- seq(10, 0, -0.1)
+#' m <- arctan_abs_pct_error(x, y)
 #' plot(m, type = "l")
 #'
-aape <- function (a, f) {
+arctan_abs_pct_error <- function (x, y) {
   # Check arguments
-
-  # Return arctangent absolute percentage error
-  return(atan(ape(a, f)))
-}
-
-#' Absolute Percentage Error
-#'
-#' @param a [numeric()] [vector()] of actual values
-#' @param f [numeric()] [vector()] of forecast values
-#'
-#' @return [numeric()] [vector()] of absolute percentage errors
-#' @export
-#'
-#' @examples
-#' a <- seq(0, 10, 0.1)
-#' f <- seq(10, 0, -0.1)
-#' m <- ape(a, f)
-#' plot(m, type = "l")
-#'
-ape <- function (a, f) {
-  # Check arguments
-
-  # Return absolute percentage error
-  return(abs((a - f) / a))
+  checkmate::assert_numeric(x, finite = TRUE, min.len = 1)
+  checkmate::assert_numeric(y, finite = TRUE, min.len = 1)
+  checkmate::assert_vector(x, strict = TRUE)
+  checkmate::assert_vector(y, strict = TRUE)
+  checkmate::assert_true(length(x) == length(y))
+  # Return
+  return(atan(abs_pct_error(x, y)))
 }
 
 #' Mean Arctangent Absolute Percentage Error
 #'
-#' @param a [numeric()] [vector()] of actual values
-#' @param f [numeric()] [vector()] of forecast values
+#' @param x [numeric()] [vector()] actual values
+#' @param y [numeric()] [vector()] forecast values
 #'
 #' @return [numeric()] mean arctangent absolute percentage error
 #' @export
@@ -55,17 +113,21 @@ ape <- function (a, f) {
 #' @examples
 #' maape(1:10, 10:1)
 #'
-maape <- function (a, f) {
+maape <- function (x, y) {
   # Check arguments
-
-  # Return maape
-  return(mean(aape(a, f), na.rm = TRUE))
+  checkmate::assert_numeric(x, finite = TRUE, min.len = 1)
+  checkmate::assert_numeric(y, finite = TRUE, min.len = 1)
+  checkmate::assert_vector(x, strict = TRUE)
+  checkmate::assert_vector(y, strict = TRUE)
+  checkmate::assert_true(length(x) == length(y))
+  # Return value
+  return(mean(arctan_abs_pct_error(x, y), na.rm = TRUE))
 }
 
 #' Mean Absolute Error
 #'
-#' @param a [numeric()] [vector()] of actual values
-#' @param f [numeric()] [vector()] of forecast values
+#' @param x [numeric()] [vector()] actual values
+#' @param y [numeric()] [vector()] forecast values
 #'
 #' @return [numeric()] mean absolute error
 #' @export
@@ -73,17 +135,50 @@ maape <- function (a, f) {
 #' @examples
 #' mae(1:10, 10:1)
 #'
-mae <- function (a, f) {
+mae <- function (x, y) {
   # Check arguments
+  checkmate::assert_numeric(x, finite = TRUE, min.len = 1)
+  checkmate::assert_numeric(y, finite = TRUE, min.len = 1)
+  checkmate::assert_vector(x, strict = TRUE)
+  checkmate::assert_vector(y, strict = TRUE)
+  checkmate::assert_true(length(x) == length(y))
+  # Return value
+  return(mean(abs(y - x), na.rm = TRUE))
+}
 
-  # Return mae
-  return(mean(abs(a - f), na.rm = TRUE))
+#' Mean Absolute Mean-Scaled Error
+#'
+#' @param x [numeric()][vector()] observed values
+#' @param y [numeric()][vector()] forecast values
+#'
+#' @return [numeric()] scalar
+#' @export
+#'
+#' @examples
+#' x <- rnorm(100, 0, 1)
+#' y1 <- x
+#' mamse(x, y1)
+#'
+#' y2 <- rep(mean(x), length(x))
+#' mamse(x, y2)
+#'
+#' mamse(c(x, NA), c(y1, NA))
+#'
+mamse <- function(x, y) {
+  # Check arguments
+  checkmate::assert_numeric(x, finite = TRUE, min.len = 1)
+  checkmate::assert_numeric(y, finite = TRUE, min.len = 1)
+  checkmate::assert_vector(x, strict = TRUE)
+  checkmate::assert_vector(y, strict = TRUE)
+  checkmate::assert_true(length(x) == length(y))
+  # Return value
+  return(mean(abs_mean_scaled_error(x, y), na.rm = TRUE))
 }
 
 #' Mean Absolute Percentage Error
 #'
-#' @param a [numeric()] [vector()] of actual values
-#' @param f [numeric()] [vector()] of forecast values
+#' @param x [numeric()][vector()] observed values
+#' @param y [numeric()][vector()] forecast values
 #'
 #' @return [numeric()] mean absolute percentage error
 #' @export
@@ -91,197 +186,166 @@ mae <- function (a, f) {
 #' @examples
 #' mape(1:10, 10:1)
 #'
-mape <- function (a, f) {
+mape <- function (x, y) {
   # Check arguments
-
-  # Return mape
-  return(mean(ape(a, f), na.rm = TRUE))
+  checkmate::assert_numeric(x, finite = TRUE, min.len = 1)
+  checkmate::assert_numeric(y, finite = TRUE, min.len = 1)
+  checkmate::assert_vector(x, strict = TRUE)
+  checkmate::assert_vector(y, strict = TRUE)
+  checkmate::assert_true(length(x) == length(y))
+  # Return value
+  return(mean(abs_pct_error(x, y), na.rm = TRUE))
 }
 
-#' Arithmetic Mean Or NA
+#' Mean Absolute Lag-1-Scaled Error
 #'
-#' @param x [numeric()] [vector()]
-#' @param max_na [integer()] scalar
+#' @param x [numeric()][vector()] observed values
+#' @param y [numeric()][vector()] forecast values
 #'
-#' @return [numeric()] scalar or \code{NA_real_}
+#' @return [numeric()] scalar
 #' @export
 #'
 #' @examples
-#' # Ends in NA
-#' x <- c(1:9, NA)
-#' mean_or_na(x)
+#' x <- rnorm(100, 0, 1)
+#' y1 <- x
+#' mase(x, y1)
 #'
-#' # Too many NA values
-#' x <- c(1:3, NA, NA, NA, 7:10)
-#' mean_or_na(x, 2)
+#' y2 <- dplyr::lag(x)
+#' mase(x, y2)
 #'
-#' # Mean
-#' x <- 1:10
-#' mean_or_na(x)
+#' mase(c(x, NA), c(y1, NA))
 #'
-mean_or_na <- function (x, max_na = Inf) {
-  if (is.na(x[length(x)])) {
-    val <- NA_real_
-  } else if (length(which(is.na(x))) > max_na) {
-    val <- NA_real_
-  } else {
-    val <- base::mean(x = x, na.rm = TRUE)
-  }
-  return(val)
+mase <- function (x, y) {
+  # Check arguments
+  checkmate::assert_numeric(x, finite = TRUE, min.len = 1)
+  checkmate::assert_numeric(y, finite = TRUE, min.len = 1)
+  checkmate::assert_vector(x, strict = TRUE)
+  checkmate::assert_vector(y, strict = TRUE)
+  checkmate::assert_true(length(x) == length(y))
+  # Return value
+  return(mean(abs_lag1_scaled_error(x, y), na.rm = TRUE))
 }
 
-#' Mean Percentage Error
+#' Metric Wrapper
 #'
-#' @param a [numeric()] [vector()] of actual values
-#' @param f [numeric()] [vector()] of forecast values
+#' @param x [numeric()][matrix()] of two columns
+#' @param fun [function()] taking two [numeric()][vector()] arguments and
+#'   returning one scalar [numeric()] value
+#' @param ... additional arguments to pass to \code{fun()}
 #'
-#' @return [numeric()] mean percentage error
+#' @return [numeric()] scalar
+#' @export
+#'
+#' @examples
+#' x <- rnorm(100, 0, 1)
+#' x1 <- matrix(c(x, x), ncol = 2)
+#' matric(x1, mase)
+#'
+#' x2 <- rbind(x1, matrix(c(NA_real_, NA_real_), ncol = 2))
+#' matric(x2, mase)
+#'
+matric <- function (x, fun, ...) {
+  # Check arguments
+  checkmate::assert_matrix(x, mode = "numeric", ncols = 2L)
+  checkmate::assert_function(fun, null.ok = FALSE)
+  # Compute value
+  if (is.na(sum(x[nrow(x),]))) {
+    value <- NA_real_
+  } else {
+    value <- fun(x[, 1], x[, 2], ...)
+  }
+  # Check value
+  checkmate::assert_number(value, na.ok = TRUE)
+  # Return value
+  return(value)
+}
+
+#' Mean Percent Error
+#'
+#' @param x [numeric()] [vector()] actual values
+#' @param y [numeric()] [vector()] forecast values
+#'
+#' @return [numeric()] mean percent error
 #' @export
 #'
 #' @examples
 #' mpe(1:10, 10:1)
 #'
-mpe <- function (a, f) {
+mpe <- function (x, y) {
   # Check arguments
-
-  # Return mpe
-  return(mean((f - a) / a, na.rm = TRUE))
+  checkmate::assert_numeric(x, finite = TRUE, min.len = 1)
+  checkmate::assert_numeric(y, finite = TRUE, min.len = 1)
+  checkmate::assert_vector(x, strict = TRUE)
+  checkmate::assert_vector(y, strict = TRUE)
+  checkmate::assert_true(length(x) == length(y))
+  # Return value
+  return(mean(pct_error(x, y), na.rm = TRUE))
 }
 
 #' Mean Raw Error
 #'
-#' @param a [numeric()] [vector()] of actual values
-#' @param f [numeric()] [vector()] of forecast values
+#' @param x [numeric()][vector()] observed values
+#' @param y [numeric()][vector()] forecast values
 #'
-#' @return [numeric()] mean raw error
+#' @return [numeric()] scalar
 #' @export
 #'
-#' @examples
-#' mre(1:10, 10:1)
-#'
-mre <- function (a, f) {
+mre <- function (x, y) {
   # Check arguments
-
-  # Return mre
-  return(mean(f - a, na.rm = TRUE))
+  checkmate::assert_numeric(x, finite = TRUE, min.len = 1)
+  checkmate::assert_numeric(y, finite = TRUE, min.len = 1)
+  checkmate::assert_vector(x, strict = TRUE)
+  checkmate::assert_vector(y, strict = TRUE)
+  checkmate::assert_true(length(x) == length(y))
+  # Return value
+  return(mean(raw_error(x, y), na.rm = TRUE))
 }
 
-#' Percentage Error
+#' Percent Error
 #'
-#' @param a [numeric()] [vector()] of actual values
-#' @param f [numeric()] [vector()] of forecast values
+#' @param x [numeric()][vector()] observed values
+#' @param y [numeric()][vector()] forecast values
 #'
-#' @return [numeric()] symmetric percentage error
+#' @return [numeric()][vector()] percent error
 #' @export
 #'
 #' @examples
-#' pe(0:10, 10:0)
+#' pct_error(0:10, 10:0)
 #'
-pe <- function (a, f) {
+pct_error <- function (x, y) {
   # Check arguments
-
-  # Return percent error
-  return((f - a) / a)
+  checkmate::assert_numeric(x, finite = TRUE, min.len = 1)
+  checkmate::assert_numeric(y, finite = TRUE, min.len = 1)
+  checkmate::assert_vector(x, strict = TRUE)
+  checkmate::assert_vector(y, strict = TRUE)
+  checkmate::assert_true(length(x) == length(y))
+  # Return value
+  return((y - x) / x)
 }
 
 #' Raw Error
 #'
-#' @param a [numeric()] [vector()] of actual values
-#' @param f [numeric()] [vector()] of forecast values
+#' @param x [numeric()][vector()] observed values
+#' @param y [numeric()][vector()] forecast values
 #'
-#' @return [numeric()] raw error
+#' @return [numeric()][vector()] raw error
 #' @export
 #'
-#' @examples
-#' re(1:10, 10:1)
-#'
-re <- function (a, f) {
+raw_error <- function (x, y) {
   # Check arguments
-
-  # Return raw error
-  return(f - a)
-}
-
-#' Pearson Correlation Or NA
-#'
-#' @param x [numeric()] [matrix()] with \code{ncol = 2}
-#' @param max_na [integer()] scalar
-#'
-#' @return [numeric()] scalar or \code{NA_real_}
-#' @export
-#'
-#' @examples
-#' # Ends in NA
-#' a <- c(1:9, NA)
-#' b <- c(1:10)
-#' x <- matrix(c(a, b), ncol = 2)
-#' rho_or_na(x)
-#'
-#' # Too many NA values
-#' a <- c(1:3, NA, NA, NA, 7:10)
-#' b <- c(1:10)
-#' x <- matrix(c(a, b), ncol = 2)
-#' rho_or_na(x, max_na = 2)
-#'
-#' # Correlation coefficient rho
-#' a <- 1:10
-#' b <- c(1:10)
-#' x <- matrix(c(a, b), ncol = 2)
-#' rho_or_na(x)
-#'
-rho_or_na <- function (x, max_na = Inf) {
-  # Check arguments
-  checkmate::assert_matrix(x, mode = "numeric", min.rows = 1, ncols = 2)
-  checkmate::assert_number(max_na, lower = 0)
-  # Compute value
-  if (is.na(sum(x[nrow(x), ]))) {
-    val <- NA_real_
-  } else if (length(which(is.na(rowSums(x)))) > max_na) {
-    val <- NA_real_
-  } else if (length(which(!is.na(rowSums(x)))) < 3) {
-    val <- NA_real_
-  } else {
-    val <- stats::cor(x = x[, 1], y = x[, 2], use = "pairwise.complete.obs")
-  }
-  return(val)
-}
-
-#' Root Mean Square Or NA
-#'
-#' @param x [numeric()] [vector()]
-#' @param max_na [integer()] scalar
-#'
-#' @return [numeric()] scalar or \code{NA_real_}
-#' @export
-#'
-#' @examples
-#' # Ends in NA
-#' x <- c(1:9, NA)
-#' rms_or_na(x)
-#'
-#' # Too many NA values
-#' x <- c(1:3, NA, NA, NA, 7:10)
-#' rms_or_na(x, 2)
-#'
-#' # Root mean squared
-#' x <- 1:10
-#' rms_or_na(x)
-#'
-rms_or_na <- function (x, max_na = Inf) {
-  if (is.na(x[length(x)])) {
-    val <- NA_real_
-  } else if (length(which(is.na(x))) > max_na) {
-    val <- NA_real_
-  } else {
-    val <- base::sqrt(mean((x^2), na.rm = TRUE))
-  }
-  return(val)
+  checkmate::assert_numeric(x, finite = TRUE, min.len = 1)
+  checkmate::assert_numeric(y, finite = TRUE, min.len = 1)
+  checkmate::assert_vector(x, strict = TRUE)
+  checkmate::assert_vector(y, strict = TRUE)
+  checkmate::assert_true(length(x) == length(y))
+  # Return value
+  return(y - x)
 }
 
 #' Root Mean Squared Error
 #'
-#' @param a [numeric()] [vector()] of actual values
-#' @param f [numeric()] [vector()] of forecast values
+#' @param x [numeric()][vector()] observed values
+#' @param y [numeric()][vector()] forecast values
 #'
 #' @return [numeric()] root mean squared error
 #' @export
@@ -289,9 +353,71 @@ rms_or_na <- function (x, max_na = Inf) {
 #' @examples
 #' rmse(1:10, 10:1)
 #'
-rmse <- function (a, f) {
+rmse <- function (x, y) {
   # Check arguments
+  checkmate::assert_numeric(x, finite = TRUE, min.len = 1)
+  checkmate::assert_numeric(y, finite = TRUE, min.len = 1)
+  checkmate::assert_vector(x, strict = TRUE)
+  checkmate::assert_vector(y, strict = TRUE)
+  checkmate::assert_true(length(x) == length(y))
+  # Return value
+  return(sqrt(mean((y - x)^2, na.rm = TRUE)))
+}
 
-  # return rmse
-  return(sqrt(mean((a - f)^2, na.rm = TRUE)))
+#' Scaled Mean Arctangent Absolute Percentage Error
+#'
+#' @param x [numeric()] [vector()] actual values
+#' @param y [numeric()] [vector()] forecast values
+#'
+#' @return [numeric()] scaled mean arctangent absolute percentage error
+#' @export
+#'
+#' @references Kim and Kim 2016 doi.org/10.1016/j.ijforecast.2015.12.003
+#'
+#' @examples
+#' x <- rnorm(100, 0, 1)
+#' y1 <- x
+#' smaape(x, y1)
+#'
+#' y2 <- rep(mean(x), length(x))
+#' smaape(x, y2)
+#'
+#' smaape(c(x, NA), c(y1, NA))
+#'
+smaape <- function (x, y) {
+  # Check arguments
+  checkmate::assert_numeric(x, finite = TRUE, min.len = 1)
+  checkmate::assert_numeric(y, finite = TRUE, min.len = 1)
+  checkmate::assert_vector(x, strict = TRUE)
+  checkmate::assert_vector(y, strict = TRUE)
+  checkmate::assert_true(length(x) == length(y))
+  # Return value
+  return(maape(x, y) / maape(x, rep(mean(x, na.rm = TRUE), length(x))))
+}
+
+#' Standardised Root Mean Squared Error
+#'
+#' @param x [numeric()][vector()] observed values
+#' @param y [numeric()][vector()] forecast values
+#'
+#' @return [numeric()] root mean squared error
+#' @export
+#'
+#' @examples
+#' x <- rnorm(100, 0, 1)
+#' y1 <- x
+#' srmse(x, y1)
+#'
+#' y2 <- rep(mean(x), length(x))
+#' srmse(x, y2)
+#'
+srmse <- function (x, y) {
+  # Check arguments
+  checkmate::assert_numeric(x, finite = TRUE, min.len = 1)
+  checkmate::assert_numeric(y, finite = TRUE, min.len = 1)
+  checkmate::assert_vector(x, strict = TRUE)
+  checkmate::assert_vector(y, strict = TRUE)
+  checkmate::assert_true(length(x) == length(y))
+  # Return value
+  return(rmse(x, y) / stats::sd(x))
 }

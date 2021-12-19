@@ -4,12 +4,12 @@
 \alias{mae}
 \title{Mean Absolute Error}
 \usage{
-mae(a, f)
+mae(x, y)
 }
 \arguments{
-\item{a}{\code{\link[=numeric]{numeric()}} \code{\link[=vector]{vector()}} of actual values}
+\item{x}{\code{\link[=numeric]{numeric()}} \code{\link[=vector]{vector()}} actual values}
 
-\item{f}{\code{\link[=numeric]{numeric()}} \code{\link[=vector]{vector()}} of forecast values}
+\item{y}{\code{\link[=numeric]{numeric()}} \code{\link[=vector]{vector()}} forecast values}
 }
 \value{
 \code{\link[=numeric]{numeric()}} mean absolute error

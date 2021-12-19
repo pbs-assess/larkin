@@ -1,6 +1,6 @@
 Package: larkin
 Title: Simulate And Fit Larkin Stock-Recruitment Models
-Version: 0.0.2
+Version: 0.0.3
 Authors@R: 
     c(person(given = c("Luke", "A."),
              family = "Rogers",
@@ -30,7 +30,8 @@ Imports:
     rlang,
     dplyr,
     magrittr,
-    runner
+    runner,
+    tidybayes
 Remotes:
     github::stan-dev/cmdstanr
 Depends: 

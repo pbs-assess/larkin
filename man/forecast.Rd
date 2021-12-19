@@ -5,10 +5,11 @@
 \title{Forecast From A Ricker Or Larkin Model Using Previous Values Only}
 \usage{
 forecast(
-  inds,
   data,
-  model = "larkin",
-  window = 10,
+  index,
+  buffer = 10,
+  metric = "mamse",
+  beyond = FALSE,
   cores = NULL,
   chains = 1,
   step_size = 0.01,
@@ -18,13 +19,15 @@ forecast(
 )
 }
 \arguments{
-\item{inds}{\code{\link[=numeric]{numeric()}} \code{\link[=vector]{vector()}} indexes of values to forecast}
-
 \item{data}{\code{\link[=list]{list()}}}
 
-\item{model}{\code{\link[=character]{character()}} either \code{"larkin"} or \code{"ricker"}}
+\item{index}{\code{\link[=integer]{integer()}}}
 
-\item{window}{\code{\link[=integer]{integer()}} length of the buffer between training and forecast}
+\item{buffer}{\code{\link[=integer]{integer()}} number of forecasts prior to \code{index}}
+
+\item{metric}{\code{\link[=character]{character()}}}
+
+\item{beyond}{\code{\link[=logical]{logical()}} TBD}
 
 \item{cores}{\code{\link[=numeric]{numeric()}} number of cores for parallel processing}
 
