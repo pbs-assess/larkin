@@ -19,8 +19,7 @@ fit <- function (data,
 
   # Check arguments ------------------------------------------------------------
 
-  checkmate::assert_list(data, c("double", "integer"))
-  # checkmate::assert_choice(model, c("larkin", "ricker"))
+  checkmate::assert_list(data, c("double", "integer", "array", "matrix"))
 
   # Create model object --------------------------------------------------------
 
