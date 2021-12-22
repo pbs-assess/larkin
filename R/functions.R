@@ -42,14 +42,15 @@ fit <- function (data,
 
   # Assemble summaries ---------------------------------------------------------
 
-  summaries <- summarise_posterior_draws(fit, data)
+  # summaries <- summarise_posterior_draws(fit, data)
 
   # Return values --------------------------------------------------------------
 
   structure(list(
     data = data,
+    draws = fit$draws(format = "df"),
     fit = fit,
-    summaries = summaries),
+    summary = fit$summary()),
     class = "fit")
 }
 
