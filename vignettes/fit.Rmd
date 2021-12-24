@@ -80,7 +80,7 @@ if (!is.null(cmdstanr::cmdstan_version(error_on_NA = FALSE))) {
     iter_sampling = 1000
   )
   
-  f1$summaries
+  f1$summary
 }
 
 ```

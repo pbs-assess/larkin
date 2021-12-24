@@ -34,7 +34,7 @@ transformed data {
 parameters {
   // Demographic rates
   real alpha; // Per-captica population growth rate at low abundance
-  real beta[B]; // Density dependent mortality parameters
+  real<upper=0> beta[B]; // Density dependent mortality parameters
   real gamma[G]; // Environmental covariate parameter
   // Process error
   real<lower=0> sigma;
