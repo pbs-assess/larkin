@@ -161,7 +161,6 @@ forecast <- function (data,
 #' @param gamma [numeric()] environmental variable influence parameter
 #' @param covars [tibble::tibble()] environmental variables
 #' @param extirp [numeric()] extirpation threshold
-#' @param seed [integer()] passed internally to [set.seed()]
 #'
 #' @return [data.frame()] simulated spawner and recruitment at age abundances
 #'
@@ -184,8 +183,7 @@ sim <- function (alpha = 2,
                  harvest = 0.2,
                  gamma = NULL,
                  covars = NULL,
-                 extirp = 1e-6,
-                 seed = NULL) {
+                 extirp = 1e-6) {
 
   # Check arguments ------------------------------------------------------------
 
@@ -201,7 +199,6 @@ sim <- function (alpha = 2,
   checkmate::assert_numeric(gamma, finite = TRUE, null.ok = TRUE)
   checkmate::assert_data_frame(covars, null.ok = TRUE)
   checkmate::assert_number(extirp)
-  checkmate::assert_number(seed, null.ok = TRUE)
 
   # Check more arguments -------------------------------------------------------
 
@@ -211,10 +208,6 @@ sim <- function (alpha = 2,
   if (!is.null(gamma) & ! is.null(covars)) {
     checkmate::assert_true(length(gamma) == ncol(covars))
   }
-
-  # Set seed -------------------------------------------------------------------
-
-  set.seed(seed)
 
   # Define index limits --------------------------------------------------------
 
