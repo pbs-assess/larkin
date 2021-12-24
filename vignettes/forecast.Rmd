@@ -42,7 +42,7 @@ s <- sim(
   # gamma = NULL,
   covars = covars,
   # covars = NULL,
-  extirp = 1e-6,
+  extirp = 1e-6
 )
 
 # Data list

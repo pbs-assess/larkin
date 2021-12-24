@@ -16,8 +16,7 @@ sim(
   harvest = 0.2,
   gamma = NULL,
   covars = NULL,
-  extirp = 1e-06,
-  seed = NULL
+  extirp = 1e-06
 )
 }
 \arguments{
@@ -45,8 +44,6 @@ spawner abundance}
 \item{covars}{\code{\link[tibble:tibble]{tibble::tibble()}} environmental variables}
 
 \item{extirp}{\code{\link[=numeric]{numeric()}} extirpation threshold}
-
-\item{seed}{\code{\link[=integer]{integer()}} passed internally to \code{\link[=set.seed]{set.seed()}}}
 }
 \value{
 \code{\link[=data.frame]{data.frame()}} simulated spawner and recruitment at age abundances
