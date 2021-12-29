@@ -15,7 +15,7 @@ sim(
   span = 100,
   harvest = 0.2,
   gamma = NULL,
-  covars = NULL,
+  environs = NULL,
   extirp = 1e-06
 )
 }
@@ -41,7 +41,7 @@ spawner abundance}
 
 \item{gamma}{\code{\link[=numeric]{numeric()}} environmental variable influence parameter}
 
-\item{covars}{\code{\link[tibble:tibble]{tibble::tibble()}} environmental variables}
+\item{environs}{\code{\link[tibble:tibble]{tibble::tibble()}} environmental variables}
 
 \item{extirp}{\code{\link[=numeric]{numeric()}} extirpation threshold}
 }
@@ -54,7 +54,7 @@ Simulate Sockeye Dynamics From A Larkin Stock-Recruitment Model
 \examples{
 s1 <- sim()
 
-covars <- simulate_environmental_covariates(100, rep(0, 3), 0.5, 1)
-s2 <- sim(gamma = rep(0.5, 3), covars = covars)
+environs <- simulate_environmental_covariates(100, rep(0, 3), 0.5, 1)
+s2 <- sim(gamma = rep(0.5, 3), environs = environs)
 
 }

@@ -159,7 +159,7 @@ forecast <- function (data,
 #' @param span [integer()] number of steps in the simulation
 #' @param harvest [numeric()] harvest rate
 #' @param gamma [numeric()] environmental variable influence parameter
-#' @param covars [tibble::tibble()] environmental variables
+#' @param environs [tibble::tibble()] environmental variables
 #' @param extirp [numeric()] extirpation threshold
 #'
 #' @return [data.frame()] simulated spawner and recruitment at age abundances
@@ -169,8 +169,8 @@ forecast <- function (data,
 #' @examples
 #' s1 <- sim()
 #'
-#' covars <- simulate_environmental_covariates(100, rep(0, 3), 0.5, 1)
-#' s2 <- sim(gamma = rep(0.5, 3), covars = covars)
+#' environs <- simulate_environmental_covariates(100, rep(0, 3), 0.5, 1)
+#' s2 <- sim(gamma = rep(0.5, 3), environs = environs)
 #'
 sim <- function (alpha = 2,
                  beta = c(-8, -6, -4, -2),
@@ -182,7 +182,7 @@ sim <- function (alpha = 2,
                  span = 100,
                  harvest = 0.2,
                  gamma = NULL,
-                 covars = NULL,
+                 environs = NULL,
                  extirp = 1e-6) {
 
   # Check arguments ------------------------------------------------------------
@@ -197,16 +197,16 @@ sim <- function (alpha = 2,
   checkmate::assert_integerish(span, lower = 0, any.missing = FALSE, len = 1)
   checkmate::assert_number(harvest, lower = 0, finite = TRUE)
   checkmate::assert_numeric(gamma, finite = TRUE, null.ok = TRUE)
-  checkmate::assert_data_frame(covars, null.ok = TRUE)
+  checkmate::assert_data_frame(environs, null.ok = TRUE)
   checkmate::assert_number(extirp)
 
   # Check more arguments -------------------------------------------------------
 
-  if (!is.null(covars)) {
-    checkmate::assert_true(nrow(covars) == span)
+  if (!is.null(environs)) {
+    checkmate::assert_true(nrow(environs) == span)
   }
-  if (!is.null(gamma) & ! is.null(covars)) {
-    checkmate::assert_true(length(gamma) == ncol(covars))
+  if (!is.null(gamma) & ! is.null(environs)) {
+    checkmate::assert_true(length(gamma) == ncol(environs))
   }
 
   # Define index limits --------------------------------------------------------
@@ -219,18 +219,18 @@ sim <- function (alpha = 2,
   ind_init <- seq_len(num_init)
   ind_span <- (num_init + burn + 1):(num_iter)
 
-  # Buffer covars --------------------------------------------------------------
+  # Buffer environs ------------------------------------------------------------
 
-  if (!is.null(covars)) {
-    means <- apply(covars, 2, mean)
-    sds <- apply(covars, 2, stats::sd)
-    buffer <- matrix(0, nrow = num_init + burn, ncol = ncol(covars))
-    colnames(buffer) <- colnames(covars)
-    for (j in seq_len(ncol(covars))) {
+  if (!is.null(environs)) {
+    means <- apply(environs, 2, mean)
+    sds <- apply(environs, 2, stats::sd)
+    buffer <- matrix(0, nrow = num_init + burn, ncol = ncol(environs))
+    colnames(buffer) <- colnames(environs)
+    for (j in seq_len(ncol(environs))) {
       buffer[, j] <- stats::rnorm(num_init + burn, means[j], sds[j])
     }
     buffer <- tibble::as_tibble(buffer)
-    covars <- dplyr::bind_rows(buffer, covars)
+    environs <- dplyr::bind_rows(buffer, environs)
   }
 
   # Initialize state variables -------------------------------------------------
@@ -266,10 +266,10 @@ sim <- function (alpha = 2,
       epsilon[i] <- phi * epsilon[i - 1] + stats::rnorm(1, 0, sigma)
     }
     # Define environmental influence
-    if (is.null(gamma) | is.null(covars)) {
+    if (is.null(gamma) | is.null(environs)) {
       environ[i] <- 0
     } else {
-      environ[i] <- sum(gamma * covars[i, ])
+      environ[i] <- sum(gamma * environs[i, ])
     }
     # Recruitment
     if (i >= 4) {
@@ -301,7 +301,7 @@ sim <- function (alpha = 2,
 
   tibble::tibble(
     time = seq_along(ind_span),
-    if (is.null(covars)) NULL else covars[ind_span, ],
+    if (is.null(environs)) NULL else environs[ind_span, ],
     returns = returns[ind_span],
     spawners = spawners[ind_span],
     r_3 = r_3[ind_span],
