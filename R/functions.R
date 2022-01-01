@@ -157,7 +157,10 @@ forecast <- function (data,
 #' @param sigma [numeric()] process error standard deviation parameter
 #' @param burn [integer()] number of burn-in steps before the simulation
 #' @param span [integer()] number of steps in the simulation
-#' @param harvest [numeric()] harvest rate
+#' @param lrp [numeric()] limit reference point
+#' @param usr [numeric()] upper stock reference
+#' @param h_min [numeric()] harvest rate in the critical zone
+#' @param h_max [numeric()] harvest rate in the healthy zone
 #' @param gamma [numeric()] environmental variable influence parameter
 #' @param environs [tibble::tibble()] environmental variables
 #' @param extirp [numeric()] extirpation threshold
@@ -180,7 +183,10 @@ sim <- function (alpha = 2,
                  sigma = 0.1,
                  burn = 100,
                  span = 100,
-                 harvest = 0.2,
+                 lrp = 0,
+                 usr = 0,
+                 h_min = 0,
+                 h_max = 0.2,
                  gamma = NULL,
                  environs = NULL,
                  extirp = 1e-6) {
@@ -195,7 +201,10 @@ sim <- function (alpha = 2,
   checkmate::assert_number(sigma, lower = 0, finite = TRUE)
   checkmate::assert_integerish(burn, lower = 0, any.missing = FALSE, len = 1)
   checkmate::assert_integerish(span, lower = 0, any.missing = FALSE, len = 1)
-  checkmate::assert_number(harvest, lower = 0, finite = TRUE)
+  checkmate::assert_number(lrp, lower = 0, finite = TRUE)
+  checkmate::assert_number(usr, lower = lrp, finite = TRUE)
+  checkmate::assert_number(h_min, lower = 0, upper = 1)
+  checkmate::assert_number(h_max, lower = h_min, upper = 1)
   checkmate::assert_numeric(gamma, finite = TRUE, null.ok = TRUE)
   checkmate::assert_data_frame(environs, null.ok = TRUE)
   checkmate::assert_number(extirp)
@@ -284,10 +293,10 @@ sim <- function (alpha = 2,
     }
     # Spawners
     if (i >= 8 & i < num_iter) {
-      # Harvest
-      h_t[i + 1] <- harvest
       # Returns
       returns[i + 1] <- sum(r_5[i - 4], r_4[i - 3], r_3[i - 2])
+      # Harvest
+      h_t[i + 1] <- harvest_control_rule(returns[i + 1], lrp, usr, h_min, h_max)
       # Spawners
       spawners[i + 1] <- (1 - h_t[i + 1]) * returns[i + 1]
       # Extirpation
@@ -303,6 +312,7 @@ sim <- function (alpha = 2,
     time = seq_along(ind_span),
     if (is.null(environs)) NULL else environs[ind_span, ],
     returns = returns[ind_span],
+    h_t = h_t[ind_span],
     spawners = spawners[ind_span],
     r_3 = r_3[ind_span],
     r_4 = r_4[ind_span],

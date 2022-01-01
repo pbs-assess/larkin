@@ -13,7 +13,10 @@ sim(
   sigma = 0.1,
   burn = 100,
   span = 100,
-  harvest = 0.2,
+  lrp = 0,
+  usr = 0,
+  h_min = 0,
+  h_max = 0.2,
   gamma = NULL,
   environs = NULL,
   extirp = 1e-06
@@ -37,7 +40,13 @@ spawner abundance}
 
 \item{span}{\code{\link[=integer]{integer()}} number of steps in the simulation}
 
-\item{harvest}{\code{\link[=numeric]{numeric()}} harvest rate}
+\item{lrp}{\code{\link[=numeric]{numeric()}} limit reference point}
+
+\item{usr}{\code{\link[=numeric]{numeric()}} upper stock reference}
+
+\item{h_min}{\code{\link[=numeric]{numeric()}} harvest rate in the critical zone}
+
+\item{h_max}{\code{\link[=numeric]{numeric()}} harvest rate in the healthy zone}
 
 \item{gamma}{\code{\link[=numeric]{numeric()}} environmental variable influence parameter}
 

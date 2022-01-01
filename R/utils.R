@@ -73,6 +73,45 @@ forecast_single_value <- function (index,
     )
 }
 
+#' Harvest Control Rule
+#'
+#' @param x [numeric()]
+#' @param lrp [numeric()]
+#' @param usr [numeric()]
+#' @param h_min [numeric()]
+#' @param h_max [numeric()]
+#'
+#' @return [numeric()]
+#' @export
+#'
+#' @examples
+#' x <- seq(0, 2, 0.001)
+#' lrp <- 0.001
+#' usr <- 1
+#' h_max <- 0.9
+#' h <- harvest_control_rule(x = x, lrp = lrp, usr = usr, h_max = h_max)
+#'
+harvest_control_rule <- function (x, lrp, usr, h_min = 0, h_max = 0.1) {
+  # Check arguments
+  checkmate::assert_numeric(x, lower = 0, finite = TRUE, any.missing = FALSE)
+  checkmate::assert_number(lrp, lower = 0, finite = TRUE)
+  checkmate::assert_number(usr, lower = lrp, finite = TRUE)
+  checkmate::assert_number(h_min, lower = 0, upper = 1)
+  checkmate::assert_number(h_max, lower = h_min, upper = 1)
+  # Define slope
+  s <- (h_max - h_min) / (usr - lrp)
+  # Return harvest rate
+  ifelse(
+    x < lrp,
+    h_min,
+    ifelse(
+      x < usr,
+      h_min + (x - lrp) * s,
+      h_max
+    )
+  )
+}
+
 #' Summarise Posterior Draws
 #'
 #' @param x [cmdstanr::sample()] model fit object

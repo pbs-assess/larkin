@@ -24,6 +24,23 @@ span <- 100
 beta <- c(-8, -6, -4, -2)
 gamma <- c(0.1, 0.2, 0.3)
 
+# Define harvest control rule
+lrp <- 0.001
+usr <- 0.1
+h_min <- 0
+h_max <- 0.4
+x <- seq(0, max(c(1, 1.1 * usr)), 0.001)
+h <- harvest_control_rule(x = x, lrp = lrp, usr = usr, h_max = h_max)
+hcr <- tibble::tibble(returns = x, h = h)
+p1 <- ggplot2::ggplot(data = hcr, mapping = ggplot2::aes(x = returns, y = h)) +
+  ggplot2::geom_line() +
+  ggplot2::theme_bw() +
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(), 
+    panel.grid.minor = ggplot2::element_blank()
+  )
+p1
+
 # Environmental covariates
 environs <- simulate_environmental_covariates(span, rep(0, 3), 0.5, 1)
 
@@ -37,7 +54,10 @@ s <- sim(
   sigma = 0.1,
   burn = 100,
   span = span,
-  harvest = 0.2,
+  lrp = lrp,
+  usr = usr,
+  h_min = h_min,
+  h_max = h_max,
   gamma = gamma,
   # gamma = NULL,
   environs = environs,

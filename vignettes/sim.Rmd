@@ -1,8 +1,8 @@
 ---
-title: "fit"
+title: "sim"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{fit}
+  %\VignetteIndexEntry{sim}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 library(larkin)
 ```
 
-```{r data}
+```{r simulate}
 # Define
 span <- 100
 beta <- c(-8, -6, -4, -2)
@@ -63,44 +63,20 @@ s <- sim(
   extirp = 1e-6
 )
 
-# Data list
-data <- list(
-  B = 4,
-  # G = 0,
-  G = 3,
-  N = span,
-  # environs = matrix(0, 0, 0),
-  environs = as.matrix(environs),
-  recruits = s$r_4,
-  spawners = s$spawners,
-  mu_alpha = 2,
-  mu_beta = beta,
-  # mu_gamma = numeric(0),
-  mu_gamma = gamma,
-  mu_sigma = 0.5,
-  sd_alpha = 0.5,
-  sd_beta = abs(beta) * 0.1,
-  # sd_gamma = numeric(0),
-  sd_gamma = abs(gamma) * 0.1,
-  sd_sigma = 0.3,
-  fudge = 1e-12
-)
+# View
+# tibble::view(s)
 
-```
-
-```{r fit}
-# Only fit if cmdstan installed
-if (!is.null(cmdstanr::cmdstan_version(error_on_NA = FALSE))) {
-  # fit
-  f1 <- fit(
-    data = data,
-    chains = 1,
-    step_size = 0.01,
-    iter_warmup = 500,
-    iter_sampling = 1000
+# Plot
+p2 <- ggplot2::ggplot(
+  data = s, 
+  mapping = ggplot2::aes(x = time, y = spawners)
+) +
+  ggplot2::geom_line() +
+  ggplot2::theme_bw() +
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(), 
+    panel.grid.minor = ggplot2::element_blank()
   )
-  
-  f1$summary
-}
+p2
 
 ```
