@@ -1,6 +1,6 @@
 Package: larkin
 Title: Simulate And Fit Larkin Stock-Recruitment Models
-Version: 0.0.3
+Version: 0.0.4
 Authors@R: 
     c(person(given = c("Luke", "A."),
              family = "Rogers",
@@ -8,7 +8,7 @@ Authors@R:
              email = "luke.rogers@dfo-mpo.gc.ca",
              comment = c(ORCID = "0000-0003-3843-064X"))
     )
-Description: The 'larkin' package simulates and fits Larkin stock-recruitment models.
+Description: The 'larkin' package fits and forecasts from Larkin and Ricker stock-recruitment models.
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true

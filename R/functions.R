@@ -1,3 +1,227 @@
+#' Forecast From A Ricker Or Larkin Model
+#'
+#' @param index [integer()] [vector()]
+#' @param recruits [numeric()] [vector()]
+#' @param spawners [numeric()] [vector()]
+#' @param environs [numeric()] [vector()]
+#' @param timevary [logical()]
+#' @param mu_alpha [numeric()]
+#' @param mu_beta [numeric()] [vector()]
+#' @param mu_gamma [numeric()] [vector()]
+#' @param mu_sigma [numeric()]
+#' @param sd_alpha [numeric()]
+#' @param sd_beta [numeric()]
+#' @param sd_gamma [numeric()] [vector()]
+#' @param sd_sigma [numeric()]
+#' @param sd_phi [numeric()]
+#' @param id_cols [list()] of colname-value pairs
+#' @param buffer [logical()]
+#' @param cores [numeric()]
+#' @param chains [numeric()]
+#' @param step_size [numeric()]
+#' @param adapt_delta [numeric()]
+#' @param iter_warmup [integer()]
+#' @param iter_sampling [integer()]
+#' @param ... additional arguments to pass to [cmdstanr::sample()]
+#'
+#' @return [tibble::tibble()]
+#' @export
+#'
+forecast <- function (index,
+                      recruits,
+                      spawners,
+                      environs = matrix(0, 0, 0),
+                      timevary = FALSE,
+                      mu_alpha,
+                      mu_beta,
+                      mu_gamma = numeric(0),
+                      mu_sigma,
+                      sd_alpha,
+                      sd_beta,
+                      sd_gamma = numeric(0),
+                      sd_sigma,
+                      sd_phi = numeric(0),
+                      id_cols = NULL,
+                      buffer = TRUE,
+                      cores = NULL,
+                      chains = 3,
+                      step_size = 0.01,
+                      adapt_delta = 0.9,
+                      iter_warmup = 250,
+                      iter_sampling = 750,
+                      ...) {
+
+  # Check arguments ------------------------------------------------------------
+
+  # max(index) not more than length(recruits) + 1
+
+
+  # Define data list -----------------------------------------------------------
+
+  data <- list(
+    N = length(recruits),
+    B = length(mu_beta),
+    G = ncol(as.matrix(environs)),
+    recruits = recruits,
+    spawners = spawners,
+    environs = as.matrix(environs),
+    timevary = as.numeric(timevary),
+    mu_alpha = mu_alpha,
+    mu_beta = as.array(mu_beta),
+    mu_gamma = as.array(mu_gamma),
+    mu_sigma = mu_sigma,
+    sd_alpha = sd_alpha,
+    sd_beta = as.array(sd_beta),
+    sd_gamma = as.array(sd_gamma),
+    sd_sigma = sd_sigma,
+    sd_phi = sd_phi,
+    fudge = 1e-12
+  )
+
+  # Generate forecasts ---------------------------------------------------------
+
+  if (length(index) > 1) {
+    # Create forecasts
+    if (.Platform$OS.type == "unix") {
+      forecasts <- parallel::mclapply(
+        X = index,
+        FUN = forecast,
+        recruits = recruits,
+        spawners = spawners,
+        environs = environs,
+        timevary = timevary,
+        mu_alpha = mu_alpha,
+        mu_beta = mu_beta,
+        mu_gamma = mu_gamma,
+        mu_sigma = mu_sigma,
+        sd_alpha = sd_alpha,
+        sd_beta = sd_beta,
+        sd_gamma = sd_gamma,
+        sd_sigma = sd_sigma,
+        sd_phi = sd_phi,
+        id_cols = id_cols,
+        buffer = FALSE,
+        chains = chains,
+        step_size = step_size,
+        adapt_delta = adapt_delta,
+        iter_warmup = iter_warmup,
+        iter_sampling = iter_sampling,
+        ...,
+        mc.cores = cores
+      )
+    } else {
+      forecasts <- lapply(
+        X = index,
+        FUN = forecast,
+        recruits = recruits,
+        spawners = spawners,
+        environs = environs,
+        timevary = timevary,
+        mu_alpha = mu_alpha,
+        mu_beta = mu_beta,
+        mu_gamma = mu_gamma,
+        mu_sigma = mu_sigma,
+        sd_alpha = sd_alpha,
+        sd_beta = sd_beta,
+        sd_gamma = sd_gamma,
+        sd_sigma = sd_sigma,
+        sd_phi = sd_phi,
+        id_cols = id_cols,
+        buffer = FALSE,
+        chains = chains,
+        step_size = step_size,
+        adapt_delta = adapt_delta,
+        iter_warmup = iter_warmup,
+        iter_sampling = iter_sampling,
+        ...
+      )
+    }
+    # Assemble forecasts
+    forecasts <- dplyr::bind_rows(forecasts) %>%
+      dplyr::ungroup()
+  } else if (length(index) == 1) {
+    # Define data list
+    data <- list(
+      N = index,
+      B = length(mu_beta),
+      G = ncol(as.matrix(environs)),
+      recruits = recruits[seq_len(min(nrow(recruits), index))],
+      spawners = spawners[seq_len(min(nrow(spawners), index))],
+      environs = as.matrix(environs[seq_len(min(nrow(environs), index)), ]),
+      timevary = as.numeric(timevary),
+      mu_alpha = mu_alpha,
+      mu_beta = as.array(mu_beta),
+      mu_gamma = as.array(mu_gamma),
+      mu_sigma = mu_sigma,
+      sd_alpha = sd_alpha,
+      sd_beta = as.array(sd_beta),
+      sd_gamma = as.array(sd_gamma),
+      sd_sigma = sd_sigma,
+      sd_phi = sd_phi,
+      fudge = 1e-12
+    )
+    # Create model object
+    mod <- cmdstanr::cmdstan_model(
+      stan_file = here::here("stan", "forecast.stan"),
+      include_path = here::here("stan")
+    )
+    # Create forecasts
+    forecasts <- mod$sample(
+      data = data,
+      chains = chains,
+      step_size = step_size,
+      adapt_delta = adapt_delta,
+      iter_warmup = iter_warmup,
+      iter_sampling = iter_sampling,
+      ...
+    ) %>%
+      tidybayes::spread_draws(forecast) %>%
+      tidybayes::summarise_draws() %>%
+      dplyr::ungroup() %>%
+      # dplyr::select(.data$mean:.data$ess_tail) %>%
+      dplyr::mutate(forecast = .data$mean) %>%
+      dplyr::relocate(.data$forecast, .before = 1) %>%
+      dplyr::mutate(index = index) %>%
+      dplyr::relocate(.data$index, .before = 1) %>%
+      dplyr::bind_cols(id_cols) %>%
+      dplyr::ungroup()
+    # TODO: Make a list including forecasts and parameter summaries?
+  } else {
+    stop("index must have length >= 1")
+  }
+
+  # Format forecasts -----------------------------------------------------------
+
+  # Buffer forecasts
+  if (buffer) {
+    forecasts <- forecasts %>%
+      tibble::add_row(index = seq_len(min(index) - 1), .before = 1)
+  }
+  # Arrange forecasts
+  forecasts <- dplyr::arrange(forecasts, .data$index)
+
+  # Return forecasts -----------------------------------------------------------
+
+  return(forecasts)
+}
+
+
+
+
+
+
+
+
+
+
+
+# New above here ---------------------------------------------------------------
+
+
+
+
+
+
 #' Fit A Larkin or Ricker Model Via CmdStanR
 #'
 #' @param data [list()]
@@ -144,245 +368,4 @@ forecast <- function (data,
       !!metric := runner::runner(m, f = larkin::matric, fun = get(metric))
     ) %>%
     dplyr::filter(.data$time %in% indexes)
-}
-
-#' Simulate Sockeye Dynamics From A Larkin Stock-Recruitment Model
-#'
-#' @param alpha [numeric()] per-capita log population growth rate at low
-#'   spawner abundance
-#' @param beta [numeric()] [vector()] density dependence parameters
-#' @param init [numeric()] [vector()] initial spawner abundances
-#' @param p_bar [numeric()] [vector()] mean age at maturity proportions
-#' @param phi [numeric()] process error autocorrelation parameter
-#' @param sigma [numeric()] process error standard deviation parameter
-#' @param burn [integer()] number of burn-in steps before the simulation
-#' @param span [integer()] number of steps in the simulation
-#' @param lrp [numeric()] limit reference point
-#' @param usr [numeric()] upper stock reference
-#' @param h_min [numeric()] harvest rate in the critical zone
-#' @param h_max [numeric()] harvest rate in the healthy zone
-#' @param gamma [numeric()] environmental variable influence parameter
-#' @param environs [tibble::tibble()] environmental variables
-#' @param extirp [numeric()] extirpation threshold
-#'
-#' @return [data.frame()] simulated spawner and recruitment at age abundances
-#'
-#' @export
-#'
-#' @examples
-#' s1 <- sim()
-#'
-#' environs <- simulate_environmental_covariates(100, rep(0, 3), 0.5, 1)
-#' s2 <- sim(gamma = rep(0.5, 3), environs = environs)
-#'
-sim <- function (alpha = 2,
-                 beta = c(-8, -6, -4, -2),
-                 init = rep(0.1, 8),
-                 p_bar = c(0.003, 0.917, 0.08),
-                 phi = 0,
-                 sigma = 0.1,
-                 burn = 100,
-                 span = 100,
-                 lrp = 0,
-                 usr = 0,
-                 h_min = 0,
-                 h_max = 0.2,
-                 gamma = NULL,
-                 environs = NULL,
-                 extirp = 1e-6) {
-
-  # Check arguments ------------------------------------------------------------
-
-  checkmate::assert_number(alpha, finite = TRUE)
-  checkmate::assert_numeric(beta, finite = TRUE, any.missing = FALSE, len = 4)
-  checkmate::assert_numeric(init, finite = TRUE, any.missing = FALSE, len = 8)
-  checkmate::assert_numeric(p_bar, finite = TRUE, any.missing = FALSE, len = 3)
-  checkmate::assert_number(phi, finite = TRUE)
-  checkmate::assert_number(sigma, lower = 0, finite = TRUE)
-  checkmate::assert_integerish(burn, lower = 0, any.missing = FALSE, len = 1)
-  checkmate::assert_integerish(span, lower = 0, any.missing = FALSE, len = 1)
-  checkmate::assert_number(lrp, lower = 0, finite = TRUE)
-  checkmate::assert_number(usr, lower = lrp, finite = TRUE)
-  checkmate::assert_number(h_min, lower = 0, upper = 1)
-  checkmate::assert_number(h_max, lower = h_min, upper = 1)
-  checkmate::assert_numeric(gamma, finite = TRUE, null.ok = TRUE)
-  checkmate::assert_data_frame(environs, null.ok = TRUE)
-  checkmate::assert_number(extirp)
-
-  # Check more arguments -------------------------------------------------------
-
-  if (!is.null(environs)) {
-    checkmate::assert_true(nrow(environs) == span)
-  }
-  if (!is.null(gamma) & ! is.null(environs)) {
-    checkmate::assert_true(length(gamma) == ncol(environs))
-  }
-
-  # Define index limits --------------------------------------------------------
-
-  num_init <- 8L
-  num_iter <- num_init + burn + span
-
-  # Define indexes -------------------------------------------------------------
-
-  ind_init <- seq_len(num_init)
-  ind_span <- (num_init + burn + 1):(num_iter)
-
-  # Buffer environs ------------------------------------------------------------
-
-  if (!is.null(environs)) {
-    means <- apply(environs, 2, mean)
-    sds <- apply(environs, 2, stats::sd)
-    buffer <- matrix(0, nrow = num_init + burn, ncol = ncol(environs))
-    colnames(buffer) <- colnames(environs)
-    for (j in seq_len(ncol(environs))) {
-      buffer[, j] <- stats::rnorm(num_init + burn, means[j], sds[j])
-    }
-    buffer <- tibble::as_tibble(buffer)
-    environs <- dplyr::bind_rows(buffer, environs)
-  }
-
-  # Initialize state variables -------------------------------------------------
-
-  returns <- rep(NA_real_, num_iter)
-  spawners <- c(init, rep(NA_real_, num_iter - num_init))
-  r_3 <- rep(NA_real_, num_iter)
-  r_4 <- rep(NA_real_, num_iter)
-  r_5 <- rep(NA_real_, num_iter)
-  recruits <- rep(NA_real_, num_iter)
-
-  # Initialize proportions -----------------------------------------------------
-
-  h_t <- rep(NA_real_, num_iter)
-  p_t <- matrix(NA_real_, nrow = num_iter, ncol = 3L)
-
-  # Initialize vectors ---------------------------------------------------------
-
-  growth <- rep(NA_real_, num_iter)
-  ddmort <- rep(NA_real_, num_iter)
-  environ <- rep(NA_real_, num_iter)
-  epsilon <- rep(NA_real_, num_iter)
-
-  # Simulate -------------------------------------------------------------------
-
-  for (i in seq_len(num_iter)) {
-    # Define proportions
-    p_t[i, ] <- p_bar
-    # Define process error
-    if (i == 1) {
-      epsilon[i] <- stats::rnorm(1, 0, sigma)
-    } else {
-      epsilon[i] <- phi * epsilon[i - 1] + stats::rnorm(1, 0, sigma)
-    }
-    # Define environmental influence
-    if (is.null(gamma) | is.null(environs)) {
-      environ[i] <- 0
-    } else {
-      environ[i] <- sum(gamma * environs[i, ])
-    }
-    # Recruitment
-    if (i >= 4) {
-      # Realized growth rate
-      ddmort[i] <- sum(beta * spawners[i:(i - 3)])
-      growth[i] <- exp(alpha + ddmort[i] + environ[i] + epsilon[i])
-      # Recruitment
-      r_3[i] <- p_t[i, 1] * spawners[i] * growth[i]
-      r_4[i] <- p_t[i, 2] * spawners[i] * growth[i]
-      r_5[i] <- p_t[i, 3] * spawners[i] * growth[i]
-      recruits[i] <- r_3[i] + r_4[i] + r_5[i]
-    }
-    # Spawners
-    if (i >= 8 & i < num_iter) {
-      # Returns
-      returns[i + 1] <- sum(r_5[i - 4], r_4[i - 3], r_3[i - 2])
-      # Harvest
-      h_t[i + 1] <- harvest_control_rule(returns[i + 1], lrp, usr, h_min, h_max)
-      # Spawners
-      spawners[i + 1] <- (1 - h_t[i + 1]) * returns[i + 1]
-      # Extirpation
-      if (spawners[i + 1] < extirp) {
-        spawners[i + 1] <- 0
-      }
-    }
-  }
-
-  # Return simulated data ------------------------------------------------------
-
-  tibble::tibble(
-    time = seq_along(ind_span),
-    if (is.null(environs)) NULL else environs[ind_span, ],
-    returns = returns[ind_span],
-    h_t = h_t[ind_span],
-    spawners = spawners[ind_span],
-    r_3 = r_3[ind_span],
-    r_4 = r_4[ind_span],
-    r_5 = r_5[ind_span],
-    recruits = recruits[ind_span]
-  )
-}
-
-#' Simulate Environmental Covariates
-#'
-#' @param n [integer()] number of time steps
-#' @param mu [numeric()][vector()] means
-#' @param phi [numeric()][vector()]
-#' @param sigma [numeric()][vector()]
-#' @param var_names [character()]
-#'
-#' @return [tibble::tibble()]
-#' @export
-#'
-#' @examples
-#'
-#' simulate_environmental_covariates(15, rep(0, 5), 0.5, 1)
-#'
-simulate_environmental_covariates <- function (n,
-                                               mu = 0,
-                                               phi = 0,
-                                               sigma = 1,
-                                               var_names = NULL) {
-
-  # Check arguments ------------------------------------------------------------
-
-  checkmate::assert_integerish(n, lower = 1, any.missing = FALSE, len = 1)
-  checkmate::assert_double(mu, finite = T, any.missing = FALSE, min.len = 1)
-  checkmate::assert_double(phi, finite = T, any.missing = FALSE, min.len = 1)
-  checkmate::assert_double(sigma, finite = T, any.missing = FALSE, min.len = 1)
-  checkmate::assert_character(var_names, any.missing = FALSE, null.ok = TRUE)
-  checkmate::assert_true(length(phi) %in% c(1, length(mu)))
-  checkmate::assert_true(length(sigma) %in% c(1, length(mu)))
-  checkmate::assert_true(length(var_names) %in% c(0, length(mu)))
-
-  # Convert argument lengths ---------------------------------------------------
-
-  if (length(mu) > 1) {
-    if (length(phi) == 1) {
-      phi <- rep(phi, length(mu))
-    }
-    if (length(sigma) == 1) {
-      sigma <- rep(sigma, length(mu))
-    }
-  }
-
-  # Simulate -------------------------------------------------------------------
-
-  m <- matrix(NA, nrow = n, ncol = length(mu))
-  for (i in seq_len(n)) {
-    for (j in seq_along(mu)) {
-      if (i == 1) {
-        m[i, j] <- stats::rnorm(n = 1, mean = mu, sd = sigma)
-      } else {
-        m[i, j] <- phi[j] * m[i - 1, j] + stats::rnorm(n = 1, mean = mu, sd = sigma)
-      }
-    }
-  }
-  if (is.null(var_names)) {
-    colnames(m) <- paste0("covar_", seq_along(mu))
-  } else {
-    colnames(m) <- var_names
-  }
-
-  # Return ---------------------------------------------------------------------
-
-  return(tibble::as_tibble(m, .name_repair = "universal"))
 }
