@@ -5,15 +5,15 @@
 #' @param spawners [numeric()] [vector()]
 #' @param environs [numeric()] [vector()]
 #' @param timevary [logical()]
-#' @param mu_alpha [numeric()]
-#' @param mu_beta [numeric()] [vector()]
-#' @param mu_gamma [numeric()] [vector()]
-#' @param mu_sigma [numeric()]
-#' @param sd_alpha [numeric()]
-#' @param sd_beta [numeric()]
-#' @param sd_gamma [numeric()] [vector()]
-#' @param sd_sigma [numeric()]
-#' @param sd_phi [numeric()]
+#' @param prior_mean_alpha [numeric()]
+#' @param prior_mean_beta [numeric()] [vector()]
+#' @param prior_mean_gamma [numeric()] [vector()]
+#' @param prior_mean_sigma [numeric()]
+#' @param prior_sd_alpha [numeric()]
+#' @param prior_sd_beta [numeric()]
+#' @param prior_sd_gamma [numeric()] [vector()]
+#' @param prior_sd_sigma [numeric()]
+#' @param prior_sd_phi [numeric()]
 #' @param id_cols [list()] of colname-value pairs
 #' @param buffer [logical()]
 #' @param cores [numeric()]
@@ -32,15 +32,15 @@ forecast <- function (index,
                       spawners,
                       environs = matrix(0, 0, 0),
                       timevary = FALSE,
-                      mu_alpha,
-                      mu_beta,
-                      mu_gamma = numeric(0),
-                      mu_sigma,
-                      sd_alpha,
-                      sd_beta,
-                      sd_gamma = numeric(0),
-                      sd_sigma,
-                      sd_phi = numeric(0),
+                      prior_mean_alpha,
+                      prior_mean_beta,
+                      prior_mean_gamma = numeric(0),
+                      prior_mean_sigma,
+                      prior_sd_alpha,
+                      prior_sd_beta,
+                      prior_sd_gamma = numeric(0),
+                      prior_sd_sigma,
+                      prior_sd_phi = numeric(0),
                       id_cols = NULL,
                       buffer = TRUE,
                       cores = NULL,
@@ -55,29 +55,6 @@ forecast <- function (index,
 
   # max(index) not more than length(recruits) + 1
 
-
-  # Define data list -----------------------------------------------------------
-
-  data <- list(
-    N = length(recruits),
-    B = length(mu_beta),
-    G = ncol(as.matrix(environs)),
-    recruits = recruits,
-    spawners = spawners,
-    environs = as.matrix(environs),
-    timevary = as.numeric(timevary),
-    mu_alpha = mu_alpha,
-    mu_beta = as.array(mu_beta),
-    mu_gamma = as.array(mu_gamma),
-    mu_sigma = mu_sigma,
-    sd_alpha = sd_alpha,
-    sd_beta = as.array(sd_beta),
-    sd_gamma = as.array(sd_gamma),
-    sd_sigma = sd_sigma,
-    sd_phi = sd_phi,
-    fudge = 1e-12
-  )
-
   # Generate forecasts ---------------------------------------------------------
 
   if (length(index) > 1) {
@@ -90,15 +67,15 @@ forecast <- function (index,
         spawners = spawners,
         environs = environs,
         timevary = timevary,
-        mu_alpha = mu_alpha,
-        mu_beta = mu_beta,
-        mu_gamma = mu_gamma,
-        mu_sigma = mu_sigma,
-        sd_alpha = sd_alpha,
-        sd_beta = sd_beta,
-        sd_gamma = sd_gamma,
-        sd_sigma = sd_sigma,
-        sd_phi = sd_phi,
+        prior_mean_alpha = prior_mean_alpha,
+        prior_mean_beta = prior_mean_beta,
+        prior_mean_gamma = prior_mean_gamma,
+        prior_mean_sigma = prior_mean_sigma,
+        prior_sd_alpha = prior_sd_alpha,
+        prior_sd_beta = prior_sd_beta,
+        prior_sd_gamma = prior_sd_gamma,
+        prior_sd_sigma = prior_sd_sigma,
+        prior_sd_phi = prior_sd_phi,
         id_cols = id_cols,
         buffer = FALSE,
         chains = chains,
@@ -117,15 +94,15 @@ forecast <- function (index,
         spawners = spawners,
         environs = environs,
         timevary = timevary,
-        mu_alpha = mu_alpha,
-        mu_beta = mu_beta,
-        mu_gamma = mu_gamma,
-        mu_sigma = mu_sigma,
-        sd_alpha = sd_alpha,
-        sd_beta = sd_beta,
-        sd_gamma = sd_gamma,
-        sd_sigma = sd_sigma,
-        sd_phi = sd_phi,
+        prior_mean_alpha = prior_mean_alpha,
+        prior_mean_beta = prior_mean_beta,
+        prior_mean_gamma = prior_mean_gamma,
+        prior_mean_sigma = prior_mean_sigma,
+        prior_sd_alpha = prior_sd_alpha,
+        prior_sd_beta = prior_sd_beta,
+        prior_sd_gamma = prior_sd_gamma,
+        prior_sd_sigma = prior_sd_sigma,
+        prior_sd_phi = prior_sd_phi,
         id_cols = id_cols,
         buffer = FALSE,
         chains = chains,
@@ -143,21 +120,21 @@ forecast <- function (index,
     # Define data list
     data <- list(
       N = index,
-      B = length(mu_beta),
+      B = length(prior_mean_beta),
       G = ncol(as.matrix(environs)),
       recruits = recruits[seq_len(min(nrow(recruits), index))],
       spawners = spawners[seq_len(min(nrow(spawners), index))],
       environs = as.matrix(environs[seq_len(min(nrow(environs), index)), ]),
       timevary = as.numeric(timevary),
-      mu_alpha = mu_alpha,
-      mu_beta = as.array(mu_beta),
-      mu_gamma = as.array(mu_gamma),
-      mu_sigma = mu_sigma,
-      sd_alpha = sd_alpha,
-      sd_beta = as.array(sd_beta),
-      sd_gamma = as.array(sd_gamma),
-      sd_sigma = sd_sigma,
-      sd_phi = sd_phi,
+      prior_mean_alpha = prior_mean_alpha,
+      prior_mean_beta = as.array(prior_mean_beta),
+      prior_mean_gamma = as.array(prior_mean_gamma),
+      prior_mean_sigma = prior_mean_sigma,
+      prior_sd_alpha = prior_sd_alpha,
+      prior_sd_beta = as.array(prior_sd_beta),
+      prior_sd_gamma = as.array(prior_sd_gamma),
+      prior_sd_sigma = prior_sd_sigma,
+      prior_sd_phi = prior_sd_phi,
       fudge = 1e-12
     )
     # Create model object
@@ -186,6 +163,7 @@ forecast <- function (index,
       dplyr::bind_cols(id_cols) %>%
       dplyr::ungroup()
     # TODO: Make a list including forecasts and parameter summaries?
+    # TODO: For now, min ESS and max R-hat
   } else {
     stop("index must have length >= 1")
   }
@@ -297,7 +275,7 @@ fit <- function (data,
 #' @return [tibble::tibble()]
 #' @export
 #'
-forecast <- function (data,
+old_forecast <- function (data,
                       index,
                       buffer = 10,
                       metric = "mamse",
