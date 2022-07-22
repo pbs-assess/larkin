@@ -9,11 +9,12 @@
 #' @param prior_mean_beta [numeric()] [vector()]
 #' @param prior_mean_gamma [numeric()] [vector()]
 #' @param prior_mean_sigma [numeric()]
+#' @param prior_mean_omega [numeric()]
 #' @param prior_sd_alpha [numeric()]
 #' @param prior_sd_beta [numeric()]
 #' @param prior_sd_gamma [numeric()] [vector()]
 #' @param prior_sd_sigma [numeric()]
-#' @param prior_sd_phi [numeric()]
+#' @param prior_sd_omega [numeric()]
 #' @param id_cols [list()] of colname-value pairs
 #' @param buffer [logical()]
 #' @param cores [numeric()]
@@ -23,6 +24,9 @@
 #' @param iter_warmup [integer()]
 #' @param iter_sampling [integer()]
 #' @param ... additional arguments to pass to [cmdstanr::sample()]
+#'
+#' @importFrom rlang .data
+#' @importFrom rlang :=
 #'
 #' @return [tibble::tibble()]
 #' @export
@@ -36,11 +40,12 @@ forecast <- function (index,
                       prior_mean_beta,
                       prior_mean_gamma = numeric(0),
                       prior_mean_sigma,
+                      prior_mean_omega = 0,
                       prior_sd_alpha,
                       prior_sd_beta,
                       prior_sd_gamma = numeric(0),
                       prior_sd_sigma,
-                      prior_sd_phi = numeric(0),
+                      prior_sd_omega = 0,
                       id_cols = NULL,
                       buffer = TRUE,
                       cores = NULL,
@@ -54,6 +59,7 @@ forecast <- function (index,
   # Check arguments ------------------------------------------------------------
 
   # max(index) not more than length(recruits) + 1
+  # use timevary as a check on prior_mean_omega and prior_sd_omega
 
   # Generate forecasts ---------------------------------------------------------
 
@@ -66,16 +72,16 @@ forecast <- function (index,
         recruits = recruits,
         spawners = spawners,
         environs = environs,
-        timevary = timevary,
         prior_mean_alpha = prior_mean_alpha,
         prior_mean_beta = prior_mean_beta,
         prior_mean_gamma = prior_mean_gamma,
         prior_mean_sigma = prior_mean_sigma,
+        prior_mean_omega = prior_mean_omega,
         prior_sd_alpha = prior_sd_alpha,
         prior_sd_beta = prior_sd_beta,
         prior_sd_gamma = prior_sd_gamma,
         prior_sd_sigma = prior_sd_sigma,
-        prior_sd_phi = prior_sd_phi,
+        prior_sd_omega = prior_sd_omega,
         id_cols = id_cols,
         buffer = FALSE,
         chains = chains,
@@ -93,16 +99,16 @@ forecast <- function (index,
         recruits = recruits,
         spawners = spawners,
         environs = environs,
-        timevary = timevary,
         prior_mean_alpha = prior_mean_alpha,
         prior_mean_beta = prior_mean_beta,
         prior_mean_gamma = prior_mean_gamma,
         prior_mean_sigma = prior_mean_sigma,
+        prior_mean_omega = prior_mean_omega,
         prior_sd_alpha = prior_sd_alpha,
         prior_sd_beta = prior_sd_beta,
         prior_sd_gamma = prior_sd_gamma,
         prior_sd_sigma = prior_sd_sigma,
-        prior_sd_phi = prior_sd_phi,
+        prior_sd_omega = prior_sd_omega,
         id_cols = id_cols,
         buffer = FALSE,
         chains = chains,
@@ -125,16 +131,16 @@ forecast <- function (index,
       recruits = recruits[seq_len(min(nrow(recruits), index))],
       spawners = spawners[seq_len(min(nrow(spawners), index))],
       environs = as.matrix(environs[seq_len(min(nrow(environs), index)), ]),
-      timevary = as.numeric(timevary),
       prior_mean_alpha = prior_mean_alpha,
       prior_mean_beta = as.array(prior_mean_beta),
       prior_mean_gamma = as.array(prior_mean_gamma),
       prior_mean_sigma = prior_mean_sigma,
+      prior_mean_omega = prior_mean_omega,
       prior_sd_alpha = prior_sd_alpha,
       prior_sd_beta = as.array(prior_sd_beta),
       prior_sd_gamma = as.array(prior_sd_gamma),
       prior_sd_sigma = prior_sd_sigma,
-      prior_sd_phi = prior_sd_phi,
+      prior_sd_omega = prior_sd_omega,
       fudge = 1e-12
     )
     # Create model object
@@ -181,169 +187,4 @@ forecast <- function (index,
   # Return forecasts -----------------------------------------------------------
 
   return(forecasts)
-}
-
-
-
-
-
-
-
-
-
-
-
-# New above here ---------------------------------------------------------------
-
-
-
-
-
-
-#' Fit A Larkin or Ricker Model Via CmdStanR
-#'
-#' @param data [list()]
-#' @param chains [integer()] number of chains
-#' @param step_size [integer()] initial step size
-#' @param iter_warmup [integer()] number of warmup iterations
-#' @param iter_sampling [integer()] number of sampling iterations
-#' @param ... additional arguments to pass to \code{$sample()} method
-#'
-#' @return [list()]
-#' @export
-#'
-fit <- function (data,
-                 chains = 1,
-                 step_size = 0.01,
-                 iter_warmup = 250,
-                 iter_sampling = 750,
-                 ...) {
-
-  # Check arguments ------------------------------------------------------------
-
-  checkmate::assert_list(data, c("double", "integer", "array", "matrix"))
-
-  # Create model object --------------------------------------------------------
-
-  mod <- cmdstanr::cmdstan_model(
-    system.file("stan", paste0("fit", ".stan"), package = "larkin"),
-    include_path = system.file("stan", package = "larkin")
-  )
-
-  # Fit the model --------------------------------------------------------------
-
-  fit <- mod$sample(
-    data = data,
-    chains = chains,
-    step_size = step_size,
-    iter_warmup = iter_warmup,
-    iter_sampling = iter_sampling,
-    ...
-  )
-
-  # Assemble summaries ---------------------------------------------------------
-
-  # summaries <- summarise_posterior_draws(fit, data)
-
-  # Return values --------------------------------------------------------------
-
-  structure(list(
-    data = data,
-    draws = fit$draws(format = "df"),
-    fit = fit,
-    summary = fit$summary()),
-    class = "fit")
-}
-
-#' Forecast From A Ricker Or Larkin Model Using Previous Values Only
-#'
-#' @param data [list()]
-#' @param index [integer()]
-#' @param buffer [integer()] number of forecasts prior to \code{index}
-#' @param metric [character()]
-#' @param beyond [logical()] TBD
-#' @param cores [numeric()] number of cores for parallel processing
-#' @param chains [integer()] number of chains
-#' @param step_size [integer()] initial step size
-#' @param iter_warmup [integer()] number of warmup iterations
-#' @param iter_sampling [integer()] number of sampling iterations
-#' @param ... additional arguments to pass to \code{$sample()} method
-#'
-#' @importFrom rlang .data
-#' @importFrom rlang :=
-#'
-#' @return [tibble::tibble()]
-#' @export
-#'
-old_forecast <- function (data,
-                      index,
-                      buffer = 10,
-                      metric = "mamse",
-                      beyond = FALSE,
-                      cores = NULL,
-                      chains = 1,
-                      step_size = 0.01,
-                      iter_warmup = 250,
-                      iter_sampling = 750,
-                      ...) {
-
-  # Check arguments ------------------------------------------------------------
-
-  checkmate::assert_list(data, c("double", "integer"))
-  checkmate::assert_integerish(data$N, lower = 6, len = 1, any.missing = FALSE)
-  checkmate::assert_integerish(index, lower = 6, len = 1, any.missing = FALSE)
-  # Temporary
-  checkmate::assert_integerish(index, upper = data$N)
-
-  # Define indexes -------------------------------------------------------------
-
-  indexes <- c(index:data$N)
-
-  # Apply forecasting ----------------------------------------------------------
-
-  if (is.null(cores)) {
-    # Apply in sequence
-    forecasts <- lapply(
-      unique(c(indexes - buffer, indexes)),
-      FUN = forecast_single_value,
-      data = data,
-      chains = chains,
-      step_size = step_size,
-      iter_warmup = iter_warmup,
-      iter_sampling = iter_sampling,
-      ...
-    )
-  } else {
-    if (.Platform$OS.type == "unix") {
-      forecasts <- parallel::mclapply(
-        unique(c(indexes - buffer, indexes)),
-        FUN = forecast_single_value,
-        data = data,
-        chains = chains,
-        step_size = step_size,
-        iter_warmup = iter_warmup,
-        iter_sampling = iter_sampling,
-        # ...,
-        mc.cores = cores
-      )
-    } else {
-      stop("parallel forecast via sockets not yet implemented R/utils.R")
-    }
-  }
-
-  # Return forecasts -----------------------------------------------------------
-
-  # Bind rows
-  forecasts <- forecasts %>%
-    dplyr::bind_rows() %>%
-    dplyr::arrange(.data$time)
-  # Define observed-forecast matrix
-  m <- matrix(c(forecasts$observed, forecasts$forecast), ncol = 2L)
-  # Return forecasts
-  forecasts %>%
-    dplyr::mutate(
-      mre = runner::runner(m, f = larkin::matric, fun = larkin::mre),
-      !!metric := runner::runner(m, f = larkin::matric, fun = get(metric))
-    ) %>%
-    dplyr::filter(.data$time %in% indexes)
 }

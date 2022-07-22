@@ -19,18 +19,13 @@ Suggests:
     rmarkdown
 VignetteBuilder: knitr
 Imports: 
-    patchwork,
-    ggplot2,
     cmdstanr,
-    rstan,
-    shinystan,
-    checkmate,
-    tibble,
+    dplyr,
+    here,
+    magrittr,
     parallel,
     rlang,
-    dplyr,
-    magrittr,
-    runner,
+    tibble,
     tidybayes
 Remotes:
     github::stan-dev/cmdstanr

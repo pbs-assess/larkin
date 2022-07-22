@@ -11,13 +11,14 @@ data {
   real prior_mean_alpha;
   vector[B] prior_mean_beta;
   vector[G] prior_mean_gamma;
-  real prior_mean_sigma;
+  real<lower=0> prior_mean_sigma;
+  real<lower=0> prior_mean_omega;
   // Prior standard deviations
   real<lower=0> prior_sd_alpha;
   vector[B]<lower=0> prior_sd_beta;
   vector[G]<lower=0> prior_sd_gamma;
   real<lower=0> prior_sd_sigma;
-  real<lower=0> prior_sd_phi;
+  real<lower=0> prior_sd_omega;
   // Fudge factors
   real<lower=0> fudge;
 }
@@ -29,10 +30,10 @@ transformed data {
   vector[I] y = log(recruits[1:I] + fudge) - log(spawners[1:I] + fudge);
   // Timevary indicator
   int<lower=0, upper=1> timevary;
-  if (prior_sd_phi == 0) {
-    timevary = 0;
-  } else {
+  if (prior_mean_omega || prior_sd_omega) {
     timevary = 1;
+  } else {
+    timevary = 0;
   }
 }
 
@@ -43,7 +44,7 @@ parameters {
   vector[G] gamma; // Environmental covariate parameters
   // Standard deviation parameters
   real<lower=0> sigma; // Process error
-  real<lower=0> phi; // Random walk on alpha
+  vector[timevary ? 1 : 0]<lower=0> omega; // Random walk on alpha
 }
 
 transformed parameters {
@@ -72,42 +73,46 @@ model {
       }
     }
   }
-  // Random walk
-  // TODO
-
-
   // Priors
-  alpha ~ normal(mu_alpha, sd_alpha);
-  // TODO
-
-
+  alpha[1] ~ normal(prior_mean_alpha, prior_sd_alpha);
   beta ~ normal(prior_mean_beta, prior_sd_beta);
   if (G > 0) {
     gamma ~ normal(prior_mean_gamma, prior_sd_gamma);
   }
   sigma ~ normal(prior_mean_sigma, prior_sd_sigma);
+  // Non-centred random walk
   if (timevary) {
-    phi ~ prior_sd_phi * std_normal();
+    // Random walk
+    (alpha[2:I] - alpha[1:(I-1)]) ./ omega[1] ~ std_normal();
+    // Random walk standard deviation prior
+    omega[1] ~ normal(prior_mean_omega, prior_sd_omega);
   }
   // Sampling statement
   y ~ normal(y_hat, sigma);
 }
 
 generated quantities {
-  // TODO wrap in curly braces so not reporting parts don't need?
-
-
-  // Define
+  // Declare output
   int<lower=0> time = N;
   real<lower=0> observed = recruits[N];
-  // Initialize
-  real mean_y_forecast = alpha;
-  real y_forecast;
   real<lower=0> forecast;
-  // Compute mean y forecast
+  // Declare not output
+  {
+    // Components of forecast
+    real mean_y_forecast;
+    real y_forecast
+  }
+  // Initialize
+  if (timevary) {
+    mean_y_forecast = normal_rng(alpha[I], omega);
+  } else {
+    mean_y_forecast = alpha[1];
+  }
+  // Add intrinsic effects
   for (b in 1:B) {
     mean_y_forecast += beta[b] * spawners[N - b + 1];
   }
+  // Add extrinsic effects
   if (G > 0) {
     for (g in 1:G) {
       mean_y_forecast += gamma[g] * environs[N, g];
