@@ -18,95 +18,69 @@ knitr::opts_chunk$set(
 library(larkin)
 ```
 
-```{r data}
-# Define
-span <- 100
-beta <- c(-8, -6, -4, -2)
-gamma <- c(0.1, 0.2, 0.3)
+```{r arguments}
+if (FALSE) {
+  # Declare arguments for manual testing
+  index <- 61:68 # 61:68
+  data <- larkin::chilko
+  recruits <- "recruits"
+  spawners <- "spawners"
+  environs <- c("flow", "pdo", "npgo_annual") # character(0)
+  timevary <- FALSE
+  prior_mean_alpha <- 2
+  prior_mean_beta <- c(-8, -6, -4, -2) # c(-4)
+  prior_mean_gamma <- rep(0, 3) # numeric(0)
+  prior_mean_sigma <- 0.5
+  prior_mean_omega <- 0.1 # 0
+  prior_sd_alpha <- 0.25 * abs(prior_mean_alpha)
+  prior_sd_beta <- 0.25 * abs(prior_mean_beta)
+  prior_sd_gamma <- rep(0.25, 3)
+  prior_sd_sigma <- 0.25 * abs(prior_mean_sigma)
+  prior_sd_omega <- 0.01 # 0
+  id_cols <- NULL
+  buffer <- FALSE # TRUE
+  cores <- 4 # 4 # 1 # 4 # 1
+  chains <- 3
+  step_size <- 0.01
+  adapt_delta <- 0.9
+  iter_warmup <- 250
+  iter_sampling <- 2000 # 750
+}
 
-# Define harvest control rule
-lrp <- 0.001
-usr <- 0.1
-h_min <- 0
-h_max <- 0.4
-x <- seq(0, max(c(1, 1.1 * usr)), 0.001)
-h <- harvest_control_rule(x = x, lrp = lrp, usr = usr, h_max = h_max)
-hcr <- tibble::tibble(returns = x, h = h)
-p1 <- ggplot2::ggplot(data = hcr, mapping = ggplot2::aes(x = returns, y = h)) +
-  ggplot2::geom_line() +
-  ggplot2::theme_bw() +
-  ggplot2::theme(
-    panel.grid.major = ggplot2::element_blank(), 
-    panel.grid.minor = ggplot2::element_blank()
-  )
-p1
-
-# Environmental covariates
-environs <- simulate_environmental_covariates(span, rep(0, 3), 0.5, 1)
-
-# Simulation
-s <- sim(
-  alpha = 2,
-  beta = beta,
-  init = rep(0.1, 8),
-  p_bar = c(0.003, 0.917, 0.08),
-  phi = 0,
-  sigma = 0.1,
-  burn = 100,
-  span = span,
-  lrp = lrp,
-  usr = usr,
-  h_min = h_min,
-  h_max = h_max,
-  gamma = gamma,
-  # gamma = NULL,
-  environs = environs,
-  # environs = NULL,
-  extirp = 1e-6
-)
-
-# Data list
-data <- list(
-  B = 4,
-  # G = 0,
-  G = 3,
-  N = span,
-  # environs = matrix(0, 0, 0),
-  environs = as.matrix(environs),
-  recruits = s$r_4,
-  spawners = s$spawners,
-  mu_alpha = 2,
-  mu_beta = beta,
-  # mu_gamma = numeric(0),
-  mu_gamma = gamma,
-  mu_sigma = 0.5,
-  sd_alpha = 0.5,
-  sd_beta = abs(beta) * 0.1,
-  # sd_gamma = numeric(0),
-  sd_gamma = abs(gamma) * 0.1,
-  sd_sigma = 0.3,
-  fudge = 1e-12
-)
 
 ```
 
+
 ```{r forecast}
-# Only fit if cmdstan installed
-if (!is.null(cmdstanr::cmdstan_version(error_on_NA = FALSE))) {
-  # fit
-  f1 <- forecast(
+if (FALSE) {
+  output <- larkin::forecast(
+    index = index,
     data = data,
-    index = 75,
-    buffer = 10,
-    metric = "mamse",
-    beyond = FALSE,
-    cores = NULL,
-    chains = 1,
-    step_size = 0.01,
-    iter_warmup = 500,
-    iter_sampling = 1000
+    recruits = recruits,
+    spawners = spawners,
+    environs = environs,
+    timevary = timevary,
+    prior_mean_alpha = prior_mean_alpha,
+    prior_mean_beta = prior_mean_beta,
+    prior_mean_gamma = prior_mean_gamma,
+    prior_mean_sigma = prior_mean_sigma,
+    prior_mean_omega = prior_mean_omega,
+    prior_sd_alpha = prior_sd_alpha,
+    prior_sd_beta = prior_sd_beta,
+    prior_sd_gamma = prior_sd_gamma,
+    prior_sd_sigma = prior_sd_sigma,
+    prior_sd_omega = prior_sd_omega,
+    id_cols = id_cols,
+    buffer = buffer,
+    cores = cores,
+    chains = chains,
+    step_size = step_size,
+    adapt_delta = adapt_delta,
+    iter_warmup = iter_warmup,
+    iter_sampling = iter_sampling
   )
-  tibble::view(f1)
 }
+
+
 
 ```

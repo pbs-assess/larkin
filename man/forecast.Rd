@@ -2,48 +2,90 @@
 % Please edit documentation in R/functions.R
 \name{forecast}
 \alias{forecast}
-\title{Forecast From A Ricker Or Larkin Model Using Previous Values Only}
+\title{Forecast From A Ricker Or Larkin Model}
 \usage{
 forecast(
-  data,
   index,
-  buffer = 10,
-  metric = "mamse",
-  beyond = FALSE,
-  cores = NULL,
-  chains = 1,
+  data,
+  recruits = "recruits",
+  spawners = "spawners",
+  environs = character(0),
+  timevary = FALSE,
+  prior_mean_alpha,
+  prior_mean_beta,
+  prior_mean_gamma = numeric(0),
+  prior_mean_sigma,
+  prior_mean_omega = 0,
+  prior_sd_alpha,
+  prior_sd_beta,
+  prior_sd_gamma = numeric(0),
+  prior_sd_sigma,
+  prior_sd_omega = 0,
+  id_cols = NULL,
+  buffer = TRUE,
+  cores = 1,
+  chains = 3,
   step_size = 0.01,
+  adapt_delta = 0.9,
   iter_warmup = 250,
   iter_sampling = 750,
   ...
 )
 }
 \arguments{
-\item{data}{\code{\link[=list]{list()}}}
+\item{index}{\code{\link[=integer]{integer()}} \code{\link[=vector]{vector()}}}
 
-\item{index}{\code{\link[=integer]{integer()}}}
+\item{data}{\code{\link[=data.frame]{data.frame()}}}
 
-\item{buffer}{\code{\link[=integer]{integer()}} number of forecasts prior to \code{index}}
+\item{recruits}{\code{\link[=character]{character()}}}
 
-\item{metric}{\code{\link[=character]{character()}}}
+\item{spawners}{\code{\link[=character]{character()}}}
 
-\item{beyond}{\code{\link[=logical]{logical()}} TBD}
+\item{environs}{\code{\link[=character]{character()}} \code{\link[=vector]{vector()}}}
 
-\item{cores}{\code{\link[=numeric]{numeric()}} number of cores for parallel processing}
+\item{timevary}{\code{\link[=logical]{logical()}}}
 
-\item{chains}{\code{\link[=integer]{integer()}} number of chains}
+\item{prior_mean_alpha}{\code{\link[=numeric]{numeric()}}}
 
-\item{step_size}{\code{\link[=integer]{integer()}} initial step size}
+\item{prior_mean_beta}{\code{\link[=numeric]{numeric()}} \code{\link[=vector]{vector()}}}
 
-\item{iter_warmup}{\code{\link[=integer]{integer()}} number of warmup iterations}
+\item{prior_mean_gamma}{\code{\link[=numeric]{numeric()}} \code{\link[=vector]{vector()}}}
 
-\item{iter_sampling}{\code{\link[=integer]{integer()}} number of sampling iterations}
+\item{prior_mean_sigma}{\code{\link[=numeric]{numeric()}}}
 
-\item{...}{additional arguments to pass to \code{$sample()} method}
+\item{prior_mean_omega}{\code{\link[=numeric]{numeric()}}}
+
+\item{prior_sd_alpha}{\code{\link[=numeric]{numeric()}}}
+
+\item{prior_sd_beta}{\code{\link[=numeric]{numeric()}}}
+
+\item{prior_sd_gamma}{\code{\link[=numeric]{numeric()}} \code{\link[=vector]{vector()}}}
+
+\item{prior_sd_sigma}{\code{\link[=numeric]{numeric()}}}
+
+\item{prior_sd_omega}{\code{\link[=numeric]{numeric()}}}
+
+\item{id_cols}{\code{\link[=list]{list()}} of colname-value pairs}
+
+\item{buffer}{\code{\link[=logical]{logical()}}}
+
+\item{cores}{\code{\link[=numeric]{numeric()}}}
+
+\item{chains}{\code{\link[=numeric]{numeric()}}}
+
+\item{step_size}{\code{\link[=numeric]{numeric()}}}
+
+\item{adapt_delta}{\code{\link[=numeric]{numeric()}}}
+
+\item{iter_warmup}{\code{\link[=integer]{integer()}}}
+
+\item{iter_sampling}{\code{\link[=integer]{integer()}}}
+
+\item{...}{additional arguments to pass to \code{\link[cmdstanr:model-method-sample]{cmdstanr::sample()}}}
 }
 \value{
 \code{\link[tibble:tibble]{tibble::tibble()}}
 }
 \description{
-Forecast From A Ricker Or Larkin Model Using Previous Values Only
+Forecast From A Ricker Or Larkin Model
 }
