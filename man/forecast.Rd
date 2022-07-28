@@ -6,9 +6,10 @@
 \usage{
 forecast(
   index,
-  recruits,
-  spawners,
-  environs = matrix(0, 0, 0),
+  data,
+  recruits = "recruits",
+  spawners = "spawners",
+  environs = character(0),
   timevary = FALSE,
   prior_mean_alpha,
   prior_mean_beta,
@@ -22,7 +23,7 @@ forecast(
   prior_sd_omega = 0,
   id_cols = NULL,
   buffer = TRUE,
-  cores = NULL,
+  cores = 1,
   chains = 3,
   step_size = 0.01,
   adapt_delta = 0.9,
@@ -34,11 +35,13 @@ forecast(
 \arguments{
 \item{index}{\code{\link[=integer]{integer()}} \code{\link[=vector]{vector()}}}
 
-\item{recruits}{\code{\link[=numeric]{numeric()}} \code{\link[=vector]{vector()}}}
+\item{data}{\code{\link[=data.frame]{data.frame()}}}
 
-\item{spawners}{\code{\link[=numeric]{numeric()}} \code{\link[=vector]{vector()}}}
+\item{recruits}{\code{\link[=character]{character()}}}
 
-\item{environs}{\code{\link[=numeric]{numeric()}} \code{\link[=vector]{vector()}}}
+\item{spawners}{\code{\link[=character]{character()}}}
+
+\item{environs}{\code{\link[=character]{character()}} \code{\link[=vector]{vector()}}}
 
 \item{timevary}{\code{\link[=logical]{logical()}}}
 

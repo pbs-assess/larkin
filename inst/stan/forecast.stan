@@ -4,8 +4,8 @@ data {
   int<lower=1> B; // Number of beta parameters
   int<lower=0> G; // Number of environmental covariates
   // Observations
-  vector[N]<lower=0> recruits; // Recruitment abundance
-  vector[N]<lower=0> spawners; // Spawning abundance
+  vector<lower=0>[N] recruits; // Recruitment abundance
+  vector<lower=0>[N] spawners; // Spawning abundance
   array[G ? N : 0, G] real environs; // Environmental indices
   // Prior means
   real prior_mean_alpha;
@@ -15,8 +15,8 @@ data {
   real<lower=0> prior_mean_omega;
   // Prior standard deviations
   real<lower=0> prior_sd_alpha;
-  vector[B]<lower=0> prior_sd_beta;
-  vector[G]<lower=0> prior_sd_gamma;
+  vector<lower=0>[B] prior_sd_beta;
+  vector<lower=0>[G] prior_sd_gamma;
   real<lower=0> prior_sd_sigma;
   real<lower=0> prior_sd_omega;
   // Fudge factors
@@ -40,11 +40,11 @@ transformed data {
 parameters {
   // Demographic rates
   vector[timevary ? I : 1] aleph; // Components of alpha
-  vector[B]<upper=0> beta; // Density dependent mortality parameters
+  vector<upper=0>[B] beta; // Density dependent mortality parameters
   vector[G] gamma; // Environmental covariate parameters
   // Standard deviation parameters
   real<lower=0> sigma; // Process error
-  vector[timevary ? 1 : 0]<lower=0> omega; // Random walk on alpha
+  vector<lower=0>[timevary ? 1 : 0] omega; // Random walk on alpha
 }
 
 transformed parameters {
@@ -96,15 +96,12 @@ generated quantities {
   int<lower=0> time = N;
   real<lower=0> observed = recruits[N];
   real<lower=0> forecast;
-  // Declare not output
-  {
-    // Components of forecast
-    real mean_y_forecast;
-    real y_forecast
-  }
+  // Components of forecast
+  real mean_y_forecast;
+  real y_forecast;
   // Initialize
   if (timevary) {
-    mean_y_forecast = normal_rng(alpha[I], omega);
+    mean_y_forecast = normal_rng(alpha[I], omega)[1];
   } else {
     mean_y_forecast = alpha[1];
   }

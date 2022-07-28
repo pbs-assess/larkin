@@ -24,6 +24,7 @@ Imports:
     here,
     magrittr,
     parallel,
+    purrr,
     rlang,
     tibble,
     tidybayes

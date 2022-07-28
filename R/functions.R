@@ -1,9 +1,10 @@
 #' Forecast From A Ricker Or Larkin Model
 #'
 #' @param index [integer()] [vector()]
-#' @param recruits [numeric()] [vector()]
-#' @param spawners [numeric()] [vector()]
-#' @param environs [numeric()] [vector()]
+#' @param data [data.frame()]
+#' @param recruits [character()]
+#' @param spawners [character()]
+#' @param environs [character()] [vector()]
 #' @param timevary [logical()]
 #' @param prior_mean_alpha [numeric()]
 #' @param prior_mean_beta [numeric()] [vector()]
@@ -32,9 +33,10 @@
 #' @export
 #'
 forecast <- function (index,
-                      recruits,
-                      spawners,
-                      environs = matrix(0, 0, 0),
+                      data,
+                      recruits = "recruits",
+                      spawners = "spawners",
+                      environs = character(0),
                       timevary = FALSE,
                       prior_mean_alpha,
                       prior_mean_beta,
@@ -48,7 +50,7 @@ forecast <- function (index,
                       prior_sd_omega = 0,
                       id_cols = NULL,
                       buffer = TRUE,
-                      cores = NULL,
+                      cores = 1,
                       chains = 3,
                       step_size = 0.01,
                       adapt_delta = 0.9,
@@ -66,9 +68,10 @@ forecast <- function (index,
   if (length(index) > 1) {
     # Create forecasts
     if (.Platform$OS.type == "unix") {
-      forecasts <- parallel::mclapply(
+      outputs <- parallel::mclapply(
         X = index,
-        FUN = forecast,
+        FUN = larkin::forecast,
+        data = data,
         recruits = recruits,
         spawners = spawners,
         environs = environs,
@@ -93,9 +96,10 @@ forecast <- function (index,
         mc.cores = cores
       )
     } else {
-      forecasts <- lapply(
+      outputs <- lapply(
         X = index,
-        FUN = forecast,
+        FUN = larkin::forecast,
+        data = data,
         recruits = recruits,
         spawners = spawners,
         environs = environs,
@@ -119,12 +123,55 @@ forecast <- function (index,
         ...
       )
     }
-    # Assemble forecasts
-    forecasts <- dplyr::bind_rows(forecasts) %>%
+    # Transpose outputs
+    outputs <- purrr::transpose(outputs)
+    # Define forecasts
+    forecasts <- dplyr::bind_rows(outputs$forecasts) %>%
+      # dplyr::arrange(.data$index) %>%
       dplyr::ungroup()
+    # Define lp__
+    lp__ <- dplyr::bind_rows(outputs$lp__) %>%
+      # dplyr::arrange(.data$index) %>%
+      dplyr::ungroup()
+    # Define alpha
+    alpha <- dplyr::bind_rows(outputs$alpha) %>%
+      # dplyr::arrange(.data$index, .data$n) %>%
+      dplyr::ungroup()
+    # Define beta
+    beta <- dplyr::bind_rows(outputs$beta) %>%
+      # dplyr::arrange(.data$index, .data$b) %>%
+      dplyr::ungroup()
+    # Define gamma
+    gamma <- dplyr::bind_rows(outputs$gamma) %>%
+      dplyr::ungroup()
+    # Define sigma
+    sigma <- dplyr::bind_rows(outputs$sigma) %>%
+      # dplyr::arrange(.data$index) %>%
+      dplyr::ungroup()
+    # Define omega
+    omega <- dplyr::bind_rows(outputs$omega) %>%
+      dplyr::ungroup()
+    # Define output
+    output <- list(
+      forecasts = forecasts,
+      lp__ = lp__,
+      alpha = alpha,
+      beta = beta,
+      gamma = gamma,
+      sigma = sigma,
+      omega = omega
+    )
   } else if (length(index) == 1) {
-    # Define data list
-    data <- list(
+    # Define observations
+    recruits <- dplyr::pull(data, recruits)
+    spawners <- dplyr::pull(data, spawners)
+    if (length(which(environs %in% colnames(data))) > 0) {
+      environs <- as.matrix(dplyr::select(data, environs))
+    } else {
+      environs <- matrix(0, 0, 0)
+    }
+    # Define Stan data
+    stan_data <- list(
       N = index,
       B = length(prior_mean_beta),
       G = ncol(as.matrix(environs)),
@@ -145,46 +192,120 @@ forecast <- function (index,
     )
     # Create model object
     mod <- cmdstanr::cmdstan_model(
-      stan_file = here::here("stan", "forecast.stan"),
-      include_path = here::here("stan")
+      stan_file = here::here("inst", "stan", "forecast.stan"),
+      include_path = here::here("inst", "stan")
     )
-    # Create forecasts
-    forecasts <- mod$sample(
-      data = data,
+    # Create samples
+    samples <- mod$sample(
+      data = stan_data,
       chains = chains,
       step_size = step_size,
       adapt_delta = adapt_delta,
       iter_warmup = iter_warmup,
       iter_sampling = iter_sampling,
       ...
-    ) %>%
+    )
+    # Define summaries
+    summaries <- samples %>%
+      tidybayes::summarise_draws() %>%
+      dplyr::ungroup()
+    # Define maximum rhat
+    max_rhat <- max(summaries$rhat, na.rm = TRUE)
+    # Define minumum ess
+    min_ess_bulk <- min(summaries$ess_bulk, na.rm = TRUE)
+    min_ess_tail <- min(summaries$ess_tail, na.rm = TRUE)
+    # Define forecasts
+    forecasts <- samples %>%
       tidybayes::spread_draws(forecast) %>%
       tidybayes::summarise_draws() %>%
       dplyr::ungroup() %>%
-      # dplyr::select(.data$mean:.data$ess_tail) %>%
-      dplyr::mutate(forecast = .data$mean) %>%
-      dplyr::relocate(.data$forecast, .before = 1) %>%
+      dplyr::select(.data$mean:.data$q95) %>%
+      # dplyr::mutate(forecast = .data$mean) %>%
+      # dplyr::mutate(observed = recruits[index]) %>%
       dplyr::mutate(index = index) %>%
+      dplyr::mutate(max_rhat = max_rhat) %>%
+      dplyr::mutate(min_ess_bulk = min_ess_bulk) %>%
+      dplyr::mutate(min_ess_tail = min_ess_tail) %>%
+      # dplyr::relocate(.data$forecast, .before = 1) %>%
+      # dplyr::relocate(.data$observed, .before = 1) %>%
       dplyr::relocate(.data$index, .before = 1) %>%
       dplyr::bind_cols(id_cols) %>%
       dplyr::ungroup()
-    # TODO: Make a list including forecasts and parameter summaries?
-    # TODO: For now, min ESS and max R-hat
+    # Define lp__
+    lp__ <- samples %>%
+      tidybayes::spread_draws(lp__) %>%
+      tidybayes::summarise_draws() %>%
+      dplyr::mutate(index = index) %>%
+      dplyr::relocate(.data$index, .before = 1) %>%
+      dplyr::ungroup()
+    # Define alpha
+    alpha <- samples %>%
+      tidybayes::spread_draws(alpha[n]) %>%
+      tidybayes::summarise_draws() %>%
+      dplyr::mutate(index = index) %>%
+      dplyr::relocate(.data$index, .before = 1) %>%
+      dplyr::mutate(index = index) %>%
+      dplyr::relocate(.data$index, .before = 1) %>%
+      dplyr::ungroup()
+    # Define beta
+    beta <- samples %>%
+      tidybayes::spread_draws(beta[b]) %>%
+      tidybayes::summarise_draws() %>%
+      dplyr::mutate(index = index) %>%
+      dplyr::relocate(.data$index, .before = 1) %>%
+      dplyr::ungroup()
+    # Define gamma
+    if (length(prior_mean_gamma) > 0) {
+      gamma <- samples %>%
+        tidybayes::spread_draws(gamma[g]) %>%
+        tidybayes::summarise_draws() %>%
+        dplyr::mutate(index = index) %>%
+        dplyr::relocate(.data$index, .before = 1) %>%
+        dplyr::ungroup()
+    } else {
+      gamma <- tibble::tibble()
+    }
+    # Define sigma
+    sigma <- samples %>%
+      tidybayes::spread_draws(sigma) %>%
+      tidybayes::summarise_draws() %>%
+      dplyr::mutate(index = index) %>%
+      dplyr::relocate(.data$index, .before = 1) %>%
+      dplyr::ungroup()
+    # Define omega
+    if (prior_mean_omega > 0 | prior_sd_omega > 0) {
+      omega <- samples %>%
+        tidybayes::spread_draws(omega[omit]) %>%
+        tidybayes::summarise_draws() %>%
+        dplyr::mutate(index = index) %>%
+        dplyr::relocate(.data$index, .before = 1) %>%
+        dplyr::select(-omit) %>%
+        dplyr::ungroup()
+    } else {
+      omega <- tibble::tibble()
+    }
+    # Define output
+    output <- list(
+      forecasts = forecasts,
+      lp__ = lp__,
+      alpha = alpha,
+      beta = beta,
+      gamma = gamma,
+      sigma = sigma,
+      omega = omega
+    )
   } else {
     stop("index must have length >= 1")
   }
 
-  # Format forecasts -----------------------------------------------------------
+  # Buffer forecasts -----------------------------------------------------------
 
-  # Buffer forecasts
   if (buffer) {
-    forecasts <- forecasts %>%
+    output$forecasts <- output$forecasts %>%
       tibble::add_row(index = seq_len(min(index) - 1), .before = 1)
   }
-  # Arrange forecasts
-  forecasts <- dplyr::arrange(forecasts, .data$index)
 
-  # Return forecasts -----------------------------------------------------------
+  # Return output --------------------------------------------------------------
 
-  return(forecasts)
+  return(output)
 }

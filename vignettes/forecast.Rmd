@@ -1,0 +1,86 @@
+---
+title: "forecast"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{forecast}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(larkin)
+```
+
+```{r arguments}
+if (FALSE) {
+  # Declare arguments for manual testing
+  index <- 61:68 # 61:68
+  data <- larkin::chilko
+  recruits <- "recruits"
+  spawners <- "spawners"
+  environs <- c("flow", "pdo", "npgo_annual") # character(0)
+  timevary <- FALSE
+  prior_mean_alpha <- 2
+  prior_mean_beta <- c(-8, -6, -4, -2) # c(-4)
+  prior_mean_gamma <- rep(0, 3) # numeric(0)
+  prior_mean_sigma <- 0.5
+  prior_mean_omega <- 0.1 # 0
+  prior_sd_alpha <- 0.25 * abs(prior_mean_alpha)
+  prior_sd_beta <- 0.25 * abs(prior_mean_beta)
+  prior_sd_gamma <- rep(0.25, 3)
+  prior_sd_sigma <- 0.25 * abs(prior_mean_sigma)
+  prior_sd_omega <- 0.01 # 0
+  id_cols <- NULL
+  buffer <- FALSE # TRUE
+  cores <- 4 # 4 # 1 # 4 # 1
+  chains <- 3
+  step_size <- 0.01
+  adapt_delta <- 0.9
+  iter_warmup <- 250
+  iter_sampling <- 2000 # 750
+}
+
+
+```
+
+
+```{r forecast}
+if (FALSE) {
+  output <- larkin::forecast(
+    index = index,
+    data = data,
+    recruits = recruits,
+    spawners = spawners,
+    environs = environs,
+    timevary = timevary,
+    prior_mean_alpha = prior_mean_alpha,
+    prior_mean_beta = prior_mean_beta,
+    prior_mean_gamma = prior_mean_gamma,
+    prior_mean_sigma = prior_mean_sigma,
+    prior_mean_omega = prior_mean_omega,
+    prior_sd_alpha = prior_sd_alpha,
+    prior_sd_beta = prior_sd_beta,
+    prior_sd_gamma = prior_sd_gamma,
+    prior_sd_sigma = prior_sd_sigma,
+    prior_sd_omega = prior_sd_omega,
+    id_cols = id_cols,
+    buffer = buffer,
+    cores = cores,
+    chains = chains,
+    step_size = step_size,
+    adapt_delta = adapt_delta,
+    iter_warmup = iter_warmup,
+    iter_sampling = iter_sampling
+  )
+}
+
+
+
+```
