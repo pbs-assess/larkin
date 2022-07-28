@@ -205,6 +205,11 @@ forecast <- function (index,
       iter_sampling = iter_sampling,
       ...
     )
+    # Placate R-CMD-check
+    n <- NULL
+    b <- NULL
+    g <- NULL
+    o <- NULL
     # Define summaries
     summaries <- samples %>%
       tidybayes::summarise_draws() %>%
@@ -275,11 +280,11 @@ forecast <- function (index,
     # Define omega
     if (prior_mean_omega > 0 | prior_sd_omega > 0) {
       omega <- samples %>%
-        tidybayes::spread_draws(omega[omit]) %>%
+        tidybayes::spread_draws(omega[o]) %>%
         tidybayes::summarise_draws() %>%
         dplyr::mutate(index = index) %>%
         dplyr::relocate(.data$index, .before = 1) %>%
-        dplyr::select(-omit) %>%
+        dplyr::select(-o) %>%
         dplyr::ungroup()
     } else {
       omega <- tibble::tibble()
