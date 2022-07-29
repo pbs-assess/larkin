@@ -1,7 +1,7 @@
 #' Forecast From A Ricker Or Larkin Model
 #'
-#' @param index [integer()] [vector()]
 #' @param data [data.frame()]
+#' @param index [integer()] [vector()]
 #' @param recruits [character()]
 #' @param spawners [character()]
 #' @param environs [character()] [vector()]
@@ -32,8 +32,8 @@
 #' @return [tibble::tibble()]
 #' @export
 #'
-forecast <- function (index,
-                      data,
+forecast <- function (data,
+                      index,
                       recruits = "recruits",
                       spawners = "spawners",
                       environs = character(0),

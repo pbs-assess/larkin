@@ -5,8 +5,8 @@
 \title{Forecast From A Ricker Or Larkin Model}
 \usage{
 forecast(
-  index,
   data,
+  index,
   recruits = "recruits",
   spawners = "spawners",
   environs = character(0),
@@ -33,9 +33,9 @@ forecast(
 )
 }
 \arguments{
-\item{index}{\code{\link[=integer]{integer()}} \code{\link[=vector]{vector()}}}
-
 \item{data}{\code{\link[=data.frame]{data.frame()}}}
+
+\item{index}{\code{\link[=integer]{integer()}} \code{\link[=vector]{vector()}}}
 
 \item{recruits}{\code{\link[=character]{character()}}}
 

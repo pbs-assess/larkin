@@ -21,8 +21,8 @@ library(larkin)
 ```{r arguments}
 if (FALSE) {
   # Declare arguments for manual testing
-  index <- 61:68 # 61:68
   data <- larkin::chilko
+  index <- 61:68 # 61:68
   recruits <- "recruits"
   spawners <- "spawners"
   environs <- c("flow", "pdo", "npgo_annual") # character(0)
@@ -54,8 +54,8 @@ if (FALSE) {
 ```{r forecast}
 if (FALSE) {
   output <- larkin::forecast(
-    index = index,
     data = data,
+    index = index,
     recruits = recruits,
     spawners = spawners,
     environs = environs,
