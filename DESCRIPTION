@@ -19,6 +19,7 @@ Suggests:
     rmarkdown
 VignetteBuilder: knitr
 Imports: 
+    checkmate,
     cmdstanr,
     dplyr,
     here,
@@ -26,6 +27,7 @@ Imports:
     parallel,
     purrr,
     rlang,
+    runner,
     tibble,
     tidybayes
 Remotes:
