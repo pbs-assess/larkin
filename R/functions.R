@@ -226,13 +226,13 @@ forecast <- function (data,
       dplyr::ungroup() %>%
       dplyr::select(.data$mean:.data$q95) %>%
       # dplyr::mutate(forecast = .data$mean) %>%
-      # dplyr::mutate(observed = recruits[index]) %>%
+      dplyr::mutate(observed = recruits[index]) %>%
       dplyr::mutate(index = index) %>%
       dplyr::mutate(max_rhat = max_rhat) %>%
       dplyr::mutate(min_ess_bulk = min_ess_bulk) %>%
       dplyr::mutate(min_ess_tail = min_ess_tail) %>%
       # dplyr::relocate(.data$forecast, .before = 1) %>%
-      # dplyr::relocate(.data$observed, .before = 1) %>%
+      dplyr::relocate(.data$observed, .before = 1) %>%
       dplyr::relocate(.data$index, .before = 1) %>%
       dplyr::bind_cols(id_cols) %>%
       dplyr::ungroup()
