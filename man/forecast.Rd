@@ -22,6 +22,7 @@ forecast(
   prior_sd_sigma,
   prior_sd_omega = 0,
   id_cols = NULL,
+  id_vals = NULL,
   buffer = TRUE,
   cores = 1,
   chains = 3,
@@ -65,7 +66,9 @@ forecast(
 
 \item{prior_sd_omega}{\code{\link[=numeric]{numeric()}}}
 
-\item{id_cols}{\code{\link[=list]{list()}} of colname-value pairs}
+\item{id_cols}{\code{\link[=character]{character()}} colnames in \code{data}}
+
+\item{id_vals}{\code{\link[=list]{list()}} of name-value pairs}
 
 \item{buffer}{\code{\link[=logical]{logical()}}}
 

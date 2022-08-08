@@ -16,7 +16,8 @@
 #' @param prior_sd_gamma [numeric()] [vector()]
 #' @param prior_sd_sigma [numeric()]
 #' @param prior_sd_omega [numeric()]
-#' @param id_cols [list()] of colname-value pairs
+#' @param id_cols [character()] colnames in \code{data}
+#' @param id_vals [list()] of name-value pairs
 #' @param buffer [logical()]
 #' @param cores [numeric()]
 #' @param chains [numeric()]
@@ -49,6 +50,7 @@ forecast <- function (data,
                       prior_sd_sigma,
                       prior_sd_omega = 0,
                       id_cols = NULL,
+                      id_vals = NULL,
                       buffer = TRUE,
                       cores = 1,
                       chains = 3,
@@ -86,6 +88,7 @@ forecast <- function (data,
         prior_sd_sigma = prior_sd_sigma,
         prior_sd_omega = prior_sd_omega,
         id_cols = id_cols,
+        id_vals = id_vals,
         buffer = FALSE,
         chains = chains,
         step_size = step_size,
@@ -114,6 +117,7 @@ forecast <- function (data,
         prior_sd_sigma = prior_sd_sigma,
         prior_sd_omega = prior_sd_omega,
         id_cols = id_cols,
+        id_vals = id_vals,
         buffer = FALSE,
         chains = chains,
         step_size = step_size,
@@ -210,6 +214,18 @@ forecast <- function (data,
     b <- NULL
     g <- NULL
     o <- NULL
+    # Define id columns
+    if (length(id_cols) > 0) {
+      id_columns <- data[1L, id_cols]
+    } else {
+      id_columns <- NULL
+    }
+    # Define id values
+    if (length(id_vals) > 0) {
+      id_values <- tibble::as_tibble(id_vals)
+    } else {
+      id_values <- NULL
+    }
     # Define summaries
     summaries <- samples %>%
       tidybayes::summarise_draws() %>%
@@ -234,7 +250,10 @@ forecast <- function (data,
       # dplyr::relocate(.data$forecast, .before = 1) %>%
       dplyr::relocate(.data$observed, .before = 1) %>%
       dplyr::relocate(.data$index, .before = 1) %>%
-      dplyr::bind_cols(id_cols) %>%
+      dplyr::bind_cols(id_values) %>%
+      dplyr::relocate(colnames(id_values), .before = 1) %>%
+      dplyr::bind_cols(id_columns) %>%
+      dplyr::relocate(colnames(id_columns), .before = 1) %>%
       dplyr::ungroup()
     # Define lp__
     lp__ <- samples %>%
@@ -242,6 +261,10 @@ forecast <- function (data,
       tidybayes::summarise_draws() %>%
       dplyr::mutate(index = index) %>%
       dplyr::relocate(.data$index, .before = 1) %>%
+      dplyr::bind_cols(id_values) %>%
+      dplyr::relocate(colnames(id_values), .before = 1) %>%
+      dplyr::bind_cols(id_columns) %>%
+      dplyr::relocate(colnames(id_columns), .before = 1) %>%
       dplyr::ungroup()
     # Define alpha
     alpha <- samples %>%
@@ -251,6 +274,10 @@ forecast <- function (data,
       dplyr::relocate(.data$index, .before = 1) %>%
       dplyr::mutate(index = index) %>%
       dplyr::relocate(.data$index, .before = 1) %>%
+      dplyr::bind_cols(id_values) %>%
+      dplyr::relocate(colnames(id_values), .before = 1) %>%
+      dplyr::bind_cols(id_columns) %>%
+      dplyr::relocate(colnames(id_columns), .before = 1) %>%
       dplyr::ungroup()
     # Define beta
     beta <- samples %>%
@@ -258,6 +285,10 @@ forecast <- function (data,
       tidybayes::summarise_draws() %>%
       dplyr::mutate(index = index) %>%
       dplyr::relocate(.data$index, .before = 1) %>%
+      dplyr::bind_cols(id_values) %>%
+      dplyr::relocate(colnames(id_values), .before = 1) %>%
+      dplyr::bind_cols(id_columns) %>%
+      dplyr::relocate(colnames(id_columns), .before = 1) %>%
       dplyr::ungroup()
     # Define gamma
     if (length(prior_mean_gamma) > 0) {
@@ -266,6 +297,10 @@ forecast <- function (data,
         tidybayes::summarise_draws() %>%
         dplyr::mutate(index = index) %>%
         dplyr::relocate(.data$index, .before = 1) %>%
+        dplyr::bind_cols(id_values) %>%
+        dplyr::relocate(colnames(id_values), .before = 1) %>%
+        dplyr::bind_cols(id_columns) %>%
+        dplyr::relocate(colnames(id_columns), .before = 1) %>%
         dplyr::ungroup()
     } else {
       gamma <- tibble::tibble()
@@ -276,6 +311,10 @@ forecast <- function (data,
       tidybayes::summarise_draws() %>%
       dplyr::mutate(index = index) %>%
       dplyr::relocate(.data$index, .before = 1) %>%
+      dplyr::bind_cols(id_values) %>%
+      dplyr::relocate(colnames(id_values), .before = 1) %>%
+      dplyr::bind_cols(id_columns) %>%
+      dplyr::relocate(colnames(id_columns), .before = 1) %>%
       dplyr::ungroup()
     # Define omega
     if (prior_mean_omega > 0 | prior_sd_omega > 0) {
@@ -284,8 +323,12 @@ forecast <- function (data,
         tidybayes::summarise_draws() %>%
         dplyr::mutate(index = index) %>%
         dplyr::relocate(.data$index, .before = 1) %>%
-        dplyr::select(-o) %>%
-        dplyr::ungroup()
+        dplyr::bind_cols(id_values) %>%
+        dplyr::relocate(colnames(id_values), .before = 1) %>%
+        dplyr::bind_cols(id_columns) %>%
+        dplyr::relocate(colnames(id_columns), .before = 1) %>%
+        dplyr::ungroup() %>%
+        dplyr::select(!o)
     } else {
       omega <- tibble::tibble()
     }
@@ -307,7 +350,12 @@ forecast <- function (data,
 
   if (buffer) {
     output$forecasts <- output$forecasts %>%
-      tibble::add_row(index = seq_len(min(index) - 1), .before = 1)
+      tibble::add_row(
+        index = seq_len(min(index) - 1),
+        id_columns,
+        id_values,
+        .before = 1
+      )
   }
 
   # Return output --------------------------------------------------------------

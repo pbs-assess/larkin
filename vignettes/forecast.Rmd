@@ -37,14 +37,15 @@ if (FALSE) {
   prior_sd_gamma <- rep(0.25, 3)
   prior_sd_sigma <- 0.25 * abs(prior_mean_sigma)
   prior_sd_omega <- 0.01 # 0
-  id_cols <- NULL
+  id_cols <- c("stock_id", "stock_name") # NULL
+  id_vals <- list(method = "model")
   buffer <- FALSE # TRUE
   cores <- 4 # 4 # 1 # 4 # 1
   chains <- 3
   step_size <- 0.01
   adapt_delta <- 0.9
   iter_warmup <- 250
-  iter_sampling <- 2000 # 750
+  iter_sampling <- 750 # 2000 # 750
 }
 
 
@@ -71,6 +72,7 @@ if (FALSE) {
     prior_sd_sigma = prior_sd_sigma,
     prior_sd_omega = prior_sd_omega,
     id_cols = id_cols,
+    id_vals = id_vals,
     buffer = buffer,
     cores = cores,
     chains = chains,
