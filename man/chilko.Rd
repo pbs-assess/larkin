@@ -5,12 +5,12 @@
 \alias{chilko}
 \title{Chilko Sockeye Salmon Abundance Data}
 \format{
-An object of class \code{tbl_df} (inherits from \code{tbl}, \code{data.frame}) with 68 rows and 23 columns.
+\code{\link[tibble:tibble]{tibble::tibble()}}
 }
 \usage{
 chilko
 }
 \description{
-Chilko Sockeye Salmon Abundance Data
+Spawner and Recruitment data
 }
 \keyword{datasets}
