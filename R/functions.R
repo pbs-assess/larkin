@@ -196,8 +196,18 @@ forecast <- function (data,
     )
     # Create model object
     mod <- cmdstanr::cmdstan_model(
-      stan_file = here::here("inst", "stan", "forecast.stan"),
-      include_path = here::here("inst", "stan")
+      stan_file = system.file(
+        "stan", "forecast.stan",
+        package = "larkin",
+        mustWork = TRUE
+      ),
+      include_path = system.file(
+        "stan",
+        package = "larkin",
+        mustWork = TRUE
+      )
+      # stan_file = here::here("inst", "stan", "forecast.stan"),
+      # include_path = here::here("inst", "stan")
     )
     # Create samples
     samples <- mod$sample(

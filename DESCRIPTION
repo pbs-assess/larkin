@@ -22,7 +22,6 @@ Imports:
     checkmate,
     cmdstanr,
     dplyr,
-    here,
     magrittr,
     parallel,
     purrr,
