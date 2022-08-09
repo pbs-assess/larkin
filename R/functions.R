@@ -65,6 +65,19 @@ forecast <- function (data,
   # max(index) not more than length(recruits) + 1
   # use timevary as a check on prior_mean_omega and prior_sd_omega
 
+  # Define id columns and values -----------------------------------------------
+
+  # Define id columns
+  id_columns <- NULL
+  if (length(id_cols) > 0) {
+    id_columns <- data[1L, id_cols]
+  }
+  # Define id values
+  id_values <- NULL
+  if (length(id_vals) > 0) {
+    id_values <- tibble::as_tibble(id_vals)
+  }
+
   # Generate forecasts ---------------------------------------------------------
 
   if (length(index) > 1) {
@@ -206,8 +219,6 @@ forecast <- function (data,
         package = "larkin",
         mustWork = TRUE
       )
-      # stan_file = here::here("inst", "stan", "forecast.stan"),
-      # include_path = here::here("inst", "stan")
     )
     # Create samples
     samples <- mod$sample(
@@ -224,18 +235,6 @@ forecast <- function (data,
     b <- NULL
     g <- NULL
     o <- NULL
-    # Define id columns
-    if (length(id_cols) > 0) {
-      id_columns <- data[1L, id_cols]
-    } else {
-      id_columns <- NULL
-    }
-    # Define id values
-    if (length(id_vals) > 0) {
-      id_values <- tibble::as_tibble(id_vals)
-    } else {
-      id_values <- NULL
-    }
     # Define summaries
     summaries <- samples %>%
       tidybayes::summarise_draws() %>%

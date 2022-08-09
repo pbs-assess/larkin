@@ -39,7 +39,7 @@ if (FALSE) {
   prior_sd_omega <- 0.01 # 0
   id_cols <- c("stock_id", "stock_name") # NULL
   id_vals <- list(method = "model")
-  buffer <- FALSE # TRUE
+  buffer <- TRUE # FALSE # TRUE
   cores <- ceiling(parallel::detectCores() / 2) # 4 # 1 # 4 # 1
   chains <- 3
   step_size <- 0.01
