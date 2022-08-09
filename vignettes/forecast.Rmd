@@ -40,7 +40,7 @@ if (FALSE) {
   id_cols <- c("stock_id", "stock_name") # NULL
   id_vals <- list(method = "model")
   buffer <- FALSE # TRUE
-  cores <- 4 # 4 # 1 # 4 # 1
+  cores <- ceiling(parallel::detectCores() / 2) # 4 # 1 # 4 # 1
   chains <- 3
   step_size <- 0.01
   adapt_delta <- 0.9
