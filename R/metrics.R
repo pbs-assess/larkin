@@ -107,3 +107,27 @@ rmse <- function (x, y = NULL, running = FALSE) {
 
   return(value)
 }
+
+#' Scaled Square Root of the Mean Squared Error (SRMSE)
+#'
+#' @param x [numeric()] [vector()] Observed values
+#' @param y [numeric()] [vector()] Forecast values
+#' @param s [numeric()] [vector()] Forecast values used to scale
+#' @param running [logical()]
+#'
+#' @return [numeric()]
+#' @export
+#'
+#' @examples
+#' # Perfect
+#' srmse(0:10, 0:10, 0:10) # NaN because 0/0
+#'
+#' # Correlated
+#' srmse(0:10, 1:11, 1:11) # 1 because y == s
+#'
+#' # Running
+#' srmse(0:10, 1:11, 1:11, TRUE) # rep(1, 11) because y == s
+#'
+srmse <- function (x, y = NULL, s, running = FALSE) {
+  rmse(x, y, running) / rmse(x, s, running)
+}
