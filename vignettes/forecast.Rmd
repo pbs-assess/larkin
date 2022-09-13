@@ -37,9 +37,8 @@ if (FALSE) {
   prior_sd_gamma <- rep(0.25, 3)
   prior_sd_sigma <- 0.25 * abs(prior_mean_sigma)
   prior_sd_omega <- 0.01 # 0
-  id_cols <- c("stock_id", "stock_name") # NULL
+  id_cols <- c("stock_id", "stock_name", "brood_year") # NULL
   id_vals <- list(method = "model")
-  buffer <- TRUE # FALSE # TRUE
   cores <- ceiling(parallel::detectCores() / 2) # 4 # 1 # 4 # 1
   chains <- 3
   step_size <- 0.01
@@ -73,7 +72,6 @@ if (FALSE) {
     prior_sd_omega = prior_sd_omega,
     id_cols = id_cols,
     id_vals = id_vals,
-    buffer = buffer,
     cores = cores,
     chains = chains,
     step_size = step_size,
@@ -81,6 +79,14 @@ if (FALSE) {
     iter_warmup = iter_warmup,
     iter_sampling = iter_sampling
   )
+  # View
+  tibble::view(output$forecasts)
+  tibble::view(output$lp__)
+  tibble::view(output$alpha)
+  tibble::view(output$beta)
+  tibble::view(output$gamma)
+  tibble::view(output$sigma)
+  tibble::view(output$omega)
 }
 
 

@@ -18,7 +18,6 @@
 #' @param prior_sd_omega [numeric()]
 #' @param id_cols [character()] colnames in \code{data}
 #' @param id_vals [list()] of name-value pairs
-#' @param buffer [logical()]
 #' @param cores [numeric()]
 #' @param chains [numeric()]
 #' @param step_size [numeric()]
@@ -51,7 +50,6 @@ forecast <- function (data,
                       prior_sd_omega = 0,
                       id_cols = NULL,
                       id_vals = NULL,
-                      buffer = TRUE,
                       cores = 1,
                       chains = 3,
                       step_size = 0.01,
@@ -69,9 +67,7 @@ forecast <- function (data,
 
   # Define id columns
   id_columns <- NULL
-  if (length(id_cols) > 0) {
-    id_columns <- data[1L, id_cols]
-  }
+
   # Define id values
   id_values <- NULL
   if (length(id_vals) > 0) {
@@ -102,7 +98,6 @@ forecast <- function (data,
         prior_sd_omega = prior_sd_omega,
         id_cols = id_cols,
         id_vals = id_vals,
-        buffer = FALSE,
         chains = chains,
         step_size = step_size,
         adapt_delta = adapt_delta,
@@ -131,7 +126,6 @@ forecast <- function (data,
         prior_sd_omega = prior_sd_omega,
         id_cols = id_cols,
         id_vals = id_vals,
-        buffer = FALSE,
         chains = chains,
         step_size = step_size,
         adapt_delta = adapt_delta,
@@ -179,6 +173,10 @@ forecast <- function (data,
       omega = omega
     )
   } else if (length(index) == 1) {
+    # Define id columns
+    if (length(id_cols) > 0) {
+      id_columns <- data[index, id_cols]
+    }
     # Define observations
     recruits <- dplyr::pull(data, recruits)
     spawners <- dplyr::pull(data, spawners)
@@ -353,18 +351,6 @@ forecast <- function (data,
     )
   } else {
     stop("index must have length >= 1")
-  }
-
-  # Buffer forecasts -----------------------------------------------------------
-
-  if (buffer) {
-    output$forecasts <- output$forecasts %>%
-      tibble::add_row(
-        index = seq_len(min(index) - 1),
-        id_columns,
-        id_values,
-        .before = 1
-      )
   }
 
   # Return output --------------------------------------------------------------

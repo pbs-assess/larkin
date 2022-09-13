@@ -23,7 +23,6 @@ forecast(
   prior_sd_omega = 0,
   id_cols = NULL,
   id_vals = NULL,
-  buffer = TRUE,
   cores = 1,
   chains = 3,
   step_size = 0.01,
@@ -69,8 +68,6 @@ forecast(
 \item{id_cols}{\code{\link[=character]{character()}} colnames in \code{data}}
 
 \item{id_vals}{\code{\link[=list]{list()}} of name-value pairs}
-
-\item{buffer}{\code{\link[=logical]{logical()}}}
 
 \item{cores}{\code{\link[=numeric]{numeric()}}}
 
