@@ -26,6 +26,6 @@ cmdstanr::install_cmdstan(cores = parallel::detectCores())
 3. Install `larkin`.
 
 ``` r
-remotes::install_github("luke-a-rogers/larkin")
+remotes::install_github("pbs-assess/larkin")
 ```
 
