@@ -29,3 +29,7 @@ cmdstanr::install_cmdstan(cores = parallel::detectCores())
 remotes::install_github("pbs-assess/larkin")
 ```
 
+Changes implemented on 21 July 2023
+- forecast no longer includes random error. A single, deterministic forecast is generated for each posterior draw.
+- timevary input parameter was removed as this is determined by value of prior on omega
+- the MLE of larkin model was included as an alternative to Bayesian estimation, in forecast() using cmdstanr's optimize() function

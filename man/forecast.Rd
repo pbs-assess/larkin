@@ -10,7 +10,7 @@ forecast(
   recruits = "recruits",
   spawners = "spawners",
   environs = character(0),
-  timevary = FALSE,
+  run_stan = TRUE,
   prior_mean_alpha,
   prior_mean_beta,
   prior_mean_gamma = numeric(0),
@@ -33,7 +33,7 @@ forecast(
 )
 }
 \arguments{
-\item{data}{\code{\link[=data.frame]{data.frame()}}}
+\item{data}{\code{\link[=data.frame]{data.frame()}} input data}
 
 \item{index}{\code{\link[=integer]{integer()}} \code{\link[=vector]{vector()}}}
 
@@ -43,7 +43,7 @@ forecast(
 
 \item{environs}{\code{\link[=character]{character()}} \code{\link[=vector]{vector()}}}
 
-\item{timevary}{\code{\link[=logical]{logical()}}}
+\item{run_stan}{\code{\link[=logical]{logical()}}}
 
 \item{prior_mean_alpha}{\code{\link[=numeric]{numeric()}}}
 

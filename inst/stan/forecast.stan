@@ -101,7 +101,8 @@ generated quantities {
   real y_forecast;
   // Initialize
   if (timevary) {
-    mean_y_forecast = normal_rng(alpha[I], omega)[1];
+     mean_y_forecast = alpha[I];
+  //  mean_y_forecast = normal_rng(alpha[I], omega)[1];
   } else {
     mean_y_forecast = alpha[1];
   }
@@ -117,6 +118,8 @@ generated quantities {
   }
   // Generate y forecast
   y_forecast = normal_rng(mean_y_forecast, sigma);
+
   // Define forecast
-  forecast = spawners[N] * exp(y_forecast);
+  // forecast = spawners[N] * exp(y_forecast);
+  forecast = spawners[N] * exp(mean_y_forecast);
 }
