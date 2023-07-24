@@ -187,6 +187,11 @@ forecast <- function (data,
       }
       # Define observations
       recruits <- dplyr::pull(data, recruits)
+
+      stopifnot("NAs in recruitment time series used for fitting (not just last year)" =
+                  length(which(is.na(recruits))) == 1)
+
+      recruits <- replace(recruits, which(is.na(recruits)), Inf)
       spawners <- dplyr::pull(data, spawners)
       if (length(which(environs %in% colnames(data))) > 0) {
         environs <- as.matrix(dplyr::select(data, environs))
@@ -234,6 +239,7 @@ forecast <- function (data,
         adapt_delta = adapt_delta,
         iter_warmup = iter_warmup,
         iter_sampling = iter_sampling,
+        show_messages = FALSE,
         ...
       )
       # Fit with optimize function (MLE)
@@ -247,8 +253,8 @@ forecast <- function (data,
       # Get optim outputs
       fo.ind <- which(fit_optim$summary()$variable == "forecast")
       fo <- fit_optim$summary()$estimate[fo.ind]
-      ob.ind <- which(fit_optim$summary()$variable == "observed")
-      ob <- fit_optim$summary()$estimate[ob.ind]
+      # ob.ind <- which(fit_optim$summary()$variable == "observed")
+      # ob <- fit_optim$summary()$estimate[ob.ind]
       si.ind <- which(fit_optim$summary()$variable == "sigma")
       si <- fit_optim$summary()$estimate[si.ind]
       lp.ind <- which(fit_optim$summary()$variable == "lp__")

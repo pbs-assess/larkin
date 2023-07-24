@@ -22,6 +22,7 @@ library(larkin)
 if (FALSE) {
   # Declare arguments for manual testing
   data <- larkin::chilko
+  data$recruits[68] <- NA
   # index <- 67:68#61:68 # 61:68
   recruits <- "recruits"
   spawners <- "spawners"

@@ -94,7 +94,7 @@ model {
 generated quantities {
   // Declare output
   int<lower=0> time = N;
-  real<lower=0> observed = recruits[N];
+  //real<lower=0> observed = recruits[N];
   real<lower=0> forecast;
   // Components of forecast
   real mean_y_forecast;
