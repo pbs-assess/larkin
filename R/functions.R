@@ -188,8 +188,8 @@ forecast <- function (data,
       # Define observations
       recruits <- dplyr::pull(data, recruits)
 
-      stopifnot("NAs in recruitment time series used for fitting (not just last year)" =
-                  length(which(is.na(recruits))) == 1)
+      stopifnot("More than one NA in recruitment time series (i.e., more than just last year)" =
+                  length(which(is.na(recruits))) <= 1)
 
       recruits <- replace(recruits, which(is.na(recruits)), Inf)
       spawners <- dplyr::pull(data, spawners)
@@ -239,7 +239,7 @@ forecast <- function (data,
         adapt_delta = adapt_delta,
         iter_warmup = iter_warmup,
         iter_sampling = iter_sampling,
-        show_messages = FALSE,
+        refresh = 0,
         ...
       )
       # Fit with optimize function (MLE)
