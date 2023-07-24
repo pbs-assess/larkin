@@ -117,7 +117,8 @@ generated quantities {
     }
   }
   // Generate y forecast
-  y_forecast = normal_rng(mean_y_forecast, sigma);
+  y_forecast = mean_y_forecast
+  //y_forecast = normal_rng(mean_y_forecast, sigma);
 
   // Define forecast
   // forecast = spawners[N] * exp(y_forecast);

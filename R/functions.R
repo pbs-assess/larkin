@@ -455,8 +455,8 @@ forecast <- function (data,
       # Get optim outputs
       fo.ind <- which(fit_optim$summary()$variable == "forecast")
       fo <- fit_optim$summary()$estimate[fo.ind]
-      ob.ind <- which(fit_optim$summary()$variable == "observed")
-      ob <- fit_optim$summary()$estimate[ob.ind]
+      # ob.ind <- which(fit_optim$summary()$variable == "observed")
+      # ob <- fit_optim$summary()$estimate[ob.ind]
       si.ind <- which(fit_optim$summary()$variable == "sigma")
       si <- fit_optim$summary()$estimate[si.ind]
       lp.ind <- which(fit_optim$summary()$variable == "lp__")

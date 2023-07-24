@@ -6,7 +6,7 @@
 \usage{
 forecast(
   data,
-  index,
+  index = NULL,
   recruits = "recruits",
   spawners = "spawners",
   environs = character(0),
