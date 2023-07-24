@@ -240,29 +240,31 @@ forecast <- function (data,
         iter_warmup = iter_warmup,
         iter_sampling = iter_sampling,
         refresh = 0,
+        show_messages = FALSE,
+        show_exceptions = FALSE,
         ...
       )
-      # Fit with optimize function (MLE)
-      fit_optim <- mod$optimize(
-        data = stan_data,
-        refresh = 0
-        # seed = 123
-      )
-      # print(fit_optim$summary(),n=149)
-
-      # Get optim outputs
-      fo.ind <- which(fit_optim$summary()$variable == "forecast")
-      fo <- fit_optim$summary()$estimate[fo.ind]
-      # ob.ind <- which(fit_optim$summary()$variable == "observed")
-      # ob <- fit_optim$summary()$estimate[ob.ind]
-      si.ind <- which(fit_optim$summary()$variable == "sigma")
-      si <- fit_optim$summary()$estimate[si.ind]
-      lp.ind <- which(fit_optim$summary()$variable == "lp__")
-      lp <- fit_optim$summary()$estimate[lp.ind]
-      al.ind <- grep("alpha", fit_optim$summary()$variable)
-      al <- fit_optim$summary()$estimate[al.ind]
-      be.ind <- grep("beta", fit_optim$summary()$variable)
-      be <- fit_optim$summary()$estimate[be.ind]
+      # # Fit with optimize function (MLE)
+      # fit_optim <- mod$optimize(
+      #   data = stan_data,
+      #   refresh = 0
+      #   # seed = 123
+      # )
+      # # print(fit_optim$summary(),n=149)
+      #
+      # # Get optim outputs
+      # fo.ind <- which(fit_optim$summary()$variable == "forecast")
+      # fo <- fit_optim$summary()$estimate[fo.ind]
+      # # ob.ind <- which(fit_optim$summary()$variable == "observed")
+      # # ob <- fit_optim$summary()$estimate[ob.ind]
+      # si.ind <- which(fit_optim$summary()$variable == "sigma")
+      # si <- fit_optim$summary()$estimate[si.ind]
+      # lp.ind <- which(fit_optim$summary()$variable == "lp__")
+      # lp <- fit_optim$summary()$estimate[lp.ind]
+      # al.ind <- grep("alpha", fit_optim$summary()$variable)
+      # al <- fit_optim$summary()$estimate[al.ind]
+      # be.ind <- grep("beta", fit_optim$summary()$variable)
+      # be <- fit_optim$summary()$estimate[be.ind]
       # Placate R-CMD-check
       n <- NULL
       b <- NULL
@@ -297,8 +299,8 @@ forecast <- function (data,
         dplyr::bind_cols(id_columns) %>%
         dplyr::relocate(colnames(id_columns), .before = 1) %>%
         dplyr::ungroup()
-      # Add optim results
-      forecasts <- forecasts %>% dplyr::mutate(optim = fo)
+      # # Add optim results
+      # forecasts <- forecasts %>% dplyr::mutate(optim = fo)
       # Define lp__
       lp__ <- samples %>%
         tidybayes::spread_draws(lp__) %>%
@@ -310,8 +312,8 @@ forecast <- function (data,
         dplyr::bind_cols(id_columns) %>%
         dplyr::relocate(colnames(id_columns), .before = 1) %>%
         dplyr::ungroup()
-      # Add optim results
-      lp__ <- lp__ %>% dplyr::mutate(optim = lp)
+      # # Add optim results
+      # lp__ <- lp__ %>% dplyr::mutate(optim = lp)
       # Define alpha
       alpha <- samples %>%
         tidybayes::spread_draws(alpha[n]) %>%
@@ -325,8 +327,8 @@ forecast <- function (data,
         dplyr::bind_cols(id_columns) %>%
         dplyr::relocate(colnames(id_columns), .before = 1) %>%
         dplyr::ungroup()
-      # Add optim results
-      alpha <- alpha %>% dplyr::mutate(optim = al)
+      # # Add optim results
+      # alpha <- alpha %>% dplyr::mutate(optim = al)
       # Define beta
       beta <- samples %>%
         tidybayes::spread_draws(beta[b]) %>%
@@ -338,8 +340,8 @@ forecast <- function (data,
         dplyr::bind_cols(id_columns) %>%
         dplyr::relocate(colnames(id_columns), .before = 1) %>%
         dplyr::ungroup()
-      # Add optim results
-      beta <- beta %>% dplyr::mutate(optim = be)
+      # # Add optim results
+      # beta <- beta %>% dplyr::mutate(optim = be)
 
       # Define gamma
       if (length(prior_mean_gamma) > 0) {
@@ -353,10 +355,10 @@ forecast <- function (data,
           dplyr::bind_cols(id_columns) %>%
           dplyr::relocate(colnames(id_columns), .before = 1) %>%
           dplyr::ungroup()
-        # Add optim results
-        ga.ind <- grep("gamma", fit_optim$summary()$variable)
-        ga <- fit_optim$summary()$estimate[ga.ind]
-        gamma <- gamma %>% dplyr::mutate(optim = ga)
+        # # Add optim results
+        # ga.ind <- grep("gamma", fit_optim$summary()$variable)
+        # ga <- fit_optim$summary()$estimate[ga.ind]
+        # gamma <- gamma %>% dplyr::mutate(optim = ga)
       } else {
         gamma <- tibble::tibble()
       }
@@ -371,8 +373,8 @@ forecast <- function (data,
         dplyr::bind_cols(id_columns) %>%
         dplyr::relocate(colnames(id_columns), .before = 1) %>%
         dplyr::ungroup()
-      # Add optim results
-      sigma <- sigma %>% dplyr::mutate(optim = si)
+      # # Add optim results
+      # sigma <- sigma %>% dplyr::mutate(optim = si)
       # Define omega
       if (prior_mean_omega > 0 | prior_sd_omega > 0) {
 
@@ -387,10 +389,10 @@ forecast <- function (data,
           dplyr::relocate(colnames(id_columns), .before = 1) %>%
           dplyr::ungroup() %>%
           dplyr::select(!o)
-        # Add optim results
-        om.ind <- grep("omega", fit_optim$summary()$variable)
-        om <- fit_optim$summary()$estimate[om.ind]
-        omega <- omega %>% dplyr::mutate(optim = om)
+        # # Add optim results
+        # om.ind <- grep("omega", fit_optim$summary()$variable)
+        # om <- fit_optim$summary()$estimate[om.ind]
+        # omega <- omega %>% dplyr::mutate(optim = om)
       } else {
         omega <- tibble::tibble()
       }
