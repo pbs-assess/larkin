@@ -33,7 +33,7 @@
 #' @export
 #'
 forecast <- function (data,
-                      index,
+                      index = NULL,
                       recruits = "recruits",
                       spawners = "spawners",
                       environs = character(0),
@@ -60,6 +60,10 @@ forecast <- function (data,
                       ...) {
 
   # Check arguments ------------------------------------------------------------
+
+  if(is.null(index)){
+    index <- dim(data)[1]
+  }
 
   # max(index) not more than length(recruits) + 1
 

@@ -22,20 +22,20 @@ library(larkin)
 if (FALSE) {
   # Declare arguments for manual testing
   data <- larkin::chilko
-  index <- 67:68#61:68 # 61:68
+  # index <- 67:68#61:68 # 61:68
   recruits <- "recruits"
   spawners <- "spawners"
-  environs <- c("flow", "pdo", "npgo_annual") # character(0)
+  environs <- character(0)#c("flow", "pdo", "npgo_annual") # character(0)
   # timevary <- FALSE
   run_stan <- TRUE
   prior_mean_alpha <- 2
   prior_mean_beta <- c(-8, -6, -4, -2) # c(-4)
-  prior_mean_gamma <- rep(0, 3) # numeric(0)
+  prior_mean_gamma <- numeric(0)#rep(0, 3) # numeric(0)
   prior_mean_sigma <- 0.5
   prior_mean_omega <- 0#0.1 # 0
   prior_sd_alpha <- 0.25 * abs(prior_mean_alpha)
   prior_sd_beta <- 0.25 * abs(prior_mean_beta)
-  prior_sd_gamma <- rep(0.25, 3)
+  prior_sd_gamma <- numeric(0)#rep(0.25, 3)
   prior_sd_sigma <- 0.25 * abs(prior_mean_sigma)
   prior_sd_omega <- 0#0.01 # 0
   id_cols <- c("stock_id", "stock_name", "brood_year") # NULL
@@ -56,7 +56,7 @@ if (FALSE) {
 if (FALSE) {
   output <- larkin::forecast(
     data = data,
-    index = index,
+    # index = index,
     recruits = recruits,
     spawners = spawners,
     environs = environs,
