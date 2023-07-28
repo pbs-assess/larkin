@@ -491,7 +491,21 @@ forecast <- function (data,
         dplyr::relocate(.data$observed, .before = 1) %>%
         dplyr::relocate(.data$index, .before = 1) %>%
         dplyr::bind_cols(id_columns) %>%
-        dplyr::relocate(colnames(id_columns), .before = 1)
+        dplyr::relocate(colnames(id_columns), .before = 1) %>%
+        dplyr::mutate(method = "model") %>%
+        dplyr::mutate(mean = NA) %>%
+        dplyr::mutate(median = NA) %>%
+        dplyr::mutate(sd = NA) %>%
+        dplyr::mutate(mad = NA) %>%
+        dplyr::mutate(q5 = NA) %>%
+        dplyr::mutate(q95 = NA) %>%
+        dplyr::mutate(max_rhat = NA) %>%
+        dplyr::mutate(min_ess_bulk = NA) %>%
+        dplyr::mutate(min_ess_tail = NA)
+        # dplyr::relocate(.data$forecast, .before = 1) %>%
+
+
+
       alpha <- tibble::tibble(n = 1:length(al), optim = al) %>%
         dplyr::mutate(index = index) %>%
         dplyr::relocate(.data$index, .before = 1) %>%
