@@ -414,6 +414,7 @@ forecast <- function (data,
       }
       # Define observations
       recruits <- dplyr::pull(data, recruits)
+      recruits <- replace(recruits, which(is.na(recruits)), Inf)
       spawners <- dplyr::pull(data, spawners)
       if (length(which(environs %in% colnames(data))) > 0) {
         environs <- as.matrix(dplyr::select(data, environs))
