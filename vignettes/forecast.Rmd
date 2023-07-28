@@ -28,7 +28,7 @@ if (FALSE) {
   spawners <- "spawners"
   environs <- character(0)#c("flow", "pdo", "npgo_annual") # character(0)
   # timevary <- FALSE
-  run_stan <- FALSE
+  run_stan <- TRUE
   prior_mean_alpha <- 2
   prior_mean_beta <- c(-8, -6, -4, -2) # c(-4)
   prior_mean_gamma <- numeric(0)#rep(0, 3) # numeric(0)
