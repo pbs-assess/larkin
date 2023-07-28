@@ -493,7 +493,7 @@ forecast <- function (data,
         dplyr::bind_cols(id_columns) %>%
         dplyr::relocate(colnames(id_columns), .before = 1) %>%
         dplyr::mutate(method = "model") %>%
-        dplyr::mutate(mean = NA) %>%
+        dplyr::mutate(mean = fo) %>%
         dplyr::mutate(median = NA) %>%
         dplyr::mutate(sd = NA) %>%
         dplyr::mutate(mad = NA) %>%
