@@ -4,6 +4,7 @@
 #' @param index [integer()] [vector()]
 #' @param recruits [character()]
 #' @param spawners [character()]
+#' @param p_prime [character()] [vector()]
 #' @param environs [character()] [vector()]
 #' @param run_stan [logical()]
 #' @param prior_mean_alpha [numeric()]
@@ -36,6 +37,7 @@ forecast <- function (data,
                       index = NULL,
                       recruits = "recruits",
                       spawners = "spawners",
+                      p_prime = c(0.003, 0.917, 0.080),
                       environs = character(0),
                       # timevary = FALSE,
                       run_stan = TRUE,
@@ -241,30 +243,22 @@ forecast <- function (data,
         iter_sampling = iter_sampling,
         refresh = 0,
         show_messages = FALSE,
-        show_exceptions = FALSE,
+        show_exceptions = TRUE,
         ...
       )
-      # # Fit with optimize function (MLE)
-      # fit_optim <- mod$optimize(
-      #   data = stan_data,
-      #   refresh = 0
-      #   # seed = 123
-      # )
-      # # print(fit_optim$summary(),n=149)
-      #
-      # # Get optim outputs
-      # fo.ind <- which(fit_optim$summary()$variable == "forecast")
-      # fo <- fit_optim$summary()$estimate[fo.ind]
-      # # ob.ind <- which(fit_optim$summary()$variable == "observed")
-      # # ob <- fit_optim$summary()$estimate[ob.ind]
-      # si.ind <- which(fit_optim$summary()$variable == "sigma")
-      # si <- fit_optim$summary()$estimate[si.ind]
-      # lp.ind <- which(fit_optim$summary()$variable == "lp__")
-      # lp <- fit_optim$summary()$estimate[lp.ind]
-      # al.ind <- grep("alpha", fit_optim$summary()$variable)
-      # al <- fit_optim$summary()$estimate[al.ind]
-      # be.ind <- grep("beta", fit_optim$summary()$variable)
-      # be <- fit_optim$summary()$estimate[be.ind]
+
+      # Calculate posterior for total returns assuming ages in p_prime
+      forecasts_Nmin3 <- data.frame(samples$draws(variables="forecast_Nmthree"))
+      forecasts_Nmin4 <- data.frame(samples$draws(variables="forecast_Nmfour"))
+      forecasts_Nmin5 <- data.frame(samples$draws(variables="forecast_Nmfive"))
+
+      forecast_R_t_samples <- forecasts_Nmin3 * p_prime[1] +
+        forecasts_Nmin4 * p_prime[2] +
+        forecasts_Nmin5 * p_prime[3]
+      forecast_R_t_samples <- as.matrix(forecast_R_t_samples )
+
+
+
       # Placate R-CMD-check
       n <- NULL
       b <- NULL
@@ -299,9 +293,29 @@ forecast <- function (data,
         dplyr::bind_cols(id_columns) %>%
         dplyr::relocate(colnames(id_columns), .before = 1) %>%
         dplyr::ungroup()
-      # # Add optim results
-      # forecasts <- forecasts %>% dplyr::mutate(optim = fo)
-      # Define lp__
+
+
+      forecasts_R_t <- tidyr::tibble(mean = mean(forecast_R_t_samples),
+                                 median = median(forecast_R_t_samples),
+                                 sd = sd(forecast_R_t_samples),
+                                 mad = mad(forecast_R_t_samples),
+                                 q5 = quantile(forecast_R_t_samples, probs=0.05),
+                                 q95 = quantile(forecast_R_t_samples, probs=0.95))
+      forecasts_R_t <- forecasts_R_t %>%
+        dplyr::mutate(observed = recruits[index]) %>%
+        dplyr::mutate(index = index) %>%
+        dplyr::mutate(max_rhat = max_rhat) %>%
+        dplyr::mutate(min_ess_bulk = min_ess_bulk) %>%
+        dplyr::mutate(min_ess_tail = min_ess_tail) %>%
+        dplyr::relocate(observed, .before = 1) %>%
+        dplyr::relocate(index, .before = 1) %>%
+        dplyr::bind_cols(id_values) %>%
+        dplyr::relocate(colnames(id_values), .before = 1) %>%
+        dplyr::bind_cols(id_columns) %>%
+        dplyr::relocate(colnames(id_columns), .before = 1) %>%
+        dplyr::ungroup()
+
+           # Define lp__
       lp__ <- samples %>%
         tidybayes::spread_draws(lp__) %>%
         tidybayes::summarise_draws() %>%
@@ -399,6 +413,7 @@ forecast <- function (data,
       # Define output
       output <- list(
         forecasts = forecasts,
+        forecasts_R_t = forecasts_R_t,
         lp__ = lp__,
         alpha = alpha,
         beta = beta,
@@ -464,6 +479,17 @@ forecast <- function (data,
       # Get optim outputs
       fo.ind <- which(fit_optim$summary()$variable == "forecast")
       fo <- fit_optim$summary()$estimate[fo.ind]
+      fo3.ind <- which(fit_optim$summary()$variable == "forecast_Nmthree")
+      fo3 <- fit_optim$summary()$estimate[fo3.ind]
+      fo4.ind <- which(fit_optim$summary()$variable == "forecast_Nmfour")
+      fo4 <- fit_optim$summary()$estimate[fo4.ind]
+      fo5.ind <- which(fit_optim$summary()$variable == "forecast_Nmfive")
+      fo5 <- fit_optim$summary()$estimate[fo5.ind]
+
+      foR <- fo3 * p_prime[1] +
+        fo4 * p_prime[2] +
+        fo5 * p_prime[3]
+
       # ob.ind <- which(fit_optim$summary()$variable == "observed")
       # ob <- fit_optim$summary()$estimate[ob.ind]
       si.ind <- which(fit_optim$summary()$variable == "sigma")
@@ -502,8 +528,24 @@ forecast <- function (data,
         dplyr::mutate(max_rhat = NA) %>%
         dplyr::mutate(min_ess_bulk = NA) %>%
         dplyr::mutate(min_ess_tail = NA)
-        # dplyr::relocate(.data$forecast, .before = 1) %>%
 
+      forecasts_R_t <- tibble::tibble(optim = foR) %>%
+        dplyr::mutate(observed = recruits[index]) %>%
+        dplyr::mutate(index = index) %>%
+        dplyr::relocate(.data$observed, .before = 1) %>%
+        dplyr::relocate(.data$index, .before = 1) %>%
+        dplyr::bind_cols(id_columns) %>%
+        dplyr::relocate(colnames(id_columns), .before = 1) %>%
+        dplyr::mutate(method = "model") %>%
+        dplyr::mutate(mean = NA) %>%
+        dplyr::mutate(median = foR) %>%
+        dplyr::mutate(sd = NA) %>%
+        dplyr::mutate(mad = NA) %>%
+        dplyr::mutate(q5 = NA) %>%
+        dplyr::mutate(q95 = NA) %>%
+        dplyr::mutate(max_rhat = NA) %>%
+        dplyr::mutate(min_ess_bulk = NA) %>%
+        dplyr::mutate(min_ess_tail = NA)
 
 
       alpha <- tibble::tibble(n = 1:length(al), optim = al) %>%
@@ -548,6 +590,7 @@ forecast <- function (data,
       # Define output
       output <- list(
         forecasts = forecasts,
+        forecasts_R_t = forecasts_R_t,
         lp__ = lp__,
         alpha = alpha,
         beta = beta,

@@ -26,6 +26,7 @@ if (FALSE) {
   # index <- 67:68#61:68 # 61:68
   recruits <- "recruits"
   spawners <- "spawners"
+  p_prime <- c(0.003, 0.917, 0.080)
   environs <- character(0)#c("flow", "pdo", "npgo_annual") # character(0)
   # timevary <- FALSE
   run_stan <- TRUE
@@ -61,6 +62,7 @@ if (FALSE) {
     recruits = recruits,
     spawners = spawners,
     environs = environs,
+    p_prime = p_prime,
     # timevary = timevary,
     run_stan = run_stan,
     prior_mean_alpha = prior_mean_alpha,

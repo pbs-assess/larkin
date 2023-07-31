@@ -93,27 +93,46 @@ model {
 
 generated quantities {
   // Declare output
-  int<lower=0> time = N;
+  //int<lower=0> time = N;
   //real<lower=0> observed = recruits[N];
   real<lower=0> forecast;
+  real<lower=0> forecast_Nmthree;
+  real<lower=0> forecast_Nmfour;
+  real<lower=0> forecast_Nmfive;
   // Components of forecast
   real mean_y_forecast;
+  real mean_y_forecast_Nmthree;
+  real mean_y_forecast_Nmfour;
+  real mean_y_forecast_Nmfive;
   real y_forecast;
   // Initialize
   if (timevary == 1) {
-     mean_y_forecast = alpha[I];
+    mean_y_forecast = alpha[I];
+    mean_y_forecast_Nmthree = alpha[I];
+    mean_y_forecast_Nmfour = alpha[I];
+    mean_y_forecast_Nmfive = alpha[I];
+
   //  mean_y_forecast = normal_rng(alpha[I], omega)[1];
   } else {
     mean_y_forecast = alpha[1];
+    mean_y_forecast_Nmthree = alpha[1];
+    mean_y_forecast_Nmfour = alpha[1];
+    mean_y_forecast_Nmfive = alpha[1];
   }
   // Add intrinsic effects
   for (b in 1:B) {
     mean_y_forecast += beta[b] * spawners[N - b + 1];
+    mean_y_forecast_Nmthree += beta[b] * spawners[N - b - 2];
+    mean_y_forecast_Nmfour += beta[b] * spawners[N - b - 3];
+    mean_y_forecast_Nmfive += beta[b] * spawners[N - b - 4];
   }
   // Add extrinsic effects
   if (G > 0) {
     for (g in 1:G) {
       mean_y_forecast += gamma[g] * environs[N, g];
+      mean_y_forecast_Nmthree += gamma[g] * environs[N, g];
+      mean_y_forecast_Nmfour += gamma[g] * environs[N, g];
+      mean_y_forecast_Nmfive += gamma[g] * environs[N, g];
     }
   }
   // Generate y forecast
@@ -123,4 +142,8 @@ generated quantities {
   // Define forecast
   // forecast = spawners[N] * exp(y_forecast);
   forecast = spawners[N] * exp(mean_y_forecast);
+  forecast_Nmthree = spawners[N-3] * exp(mean_y_forecast_Nmthree);
+  forecast_Nmfour = spawners[N-4] * exp(mean_y_forecast_Nmfour);
+  forecast_Nmfive = spawners[N-5] * exp(mean_y_forecast_Nmfive);
+
 }

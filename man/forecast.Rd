@@ -9,6 +9,7 @@ forecast(
   index = NULL,
   recruits = "recruits",
   spawners = "spawners",
+  p_prime = c(0.003, 0.917, 0.08),
   environs = character(0),
   run_stan = TRUE,
   prior_mean_alpha,
@@ -40,6 +41,8 @@ forecast(
 \item{recruits}{\code{\link[=character]{character()}}}
 
 \item{spawners}{\code{\link[=character]{character()}}}
+
+\item{p_prime}{\code{\link[=character]{character()}} \code{\link[=vector]{vector()}}}
 
 \item{environs}{\code{\link[=character]{character()}} \code{\link[=vector]{vector()}}}
 
