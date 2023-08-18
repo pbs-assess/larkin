@@ -410,10 +410,71 @@ forecast <- function (data,
       } else {
         omega <- tibble::tibble()
       }
+
+
+      # Calculate predicted values assuming no env covarites
+      if (length(prior_mean_gamma) > 0) {
+        gamma <- samples$draws(variables = "gamma")
+      }
+
+      alphaDraws <- samples %>% tidybayes::spread_draws(alpha[n])
+      alphaDraws <- alphaDraws %>%
+        # remove first lag years (3 for Larkin) as these are not actually estimated
+        dplyr::filter(n > (length(beta$b) - 1)) %>%
+        tidyr::pivot_wider(names_from = n, values_from = alpha) %>%
+        dplyr::select(!.chain) %>% dplyr::select(!.iteration) %>%
+        dplyr::select(!.draw)
+      betaDraws <- samples %>% tidybayes::spread_draws(beta[b])
+      betaDraws <- betaDraws %>%
+        tidyr::pivot_wider(names_from=b, values_from=beta) %>%
+        dplyr::select(!.chain) %>% dplyr::select(!.iteration) %>%
+        dplyr::select(!.draw)
+
+
+      n <- length(spawners)-1 # last year is forecasted, not predicted
+      nlags <- length(beta$b) - 1 # Number of lags in Larkin model (for predR)
+      init <- 0#5 # Max generation length = #yrs to skip at the beginning because of initialization
+      if(length(beta$b) > 1){
+        lagS <- data.frame(S0 = spawners[(nlags + init + 1): n],
+                           S1 = spawners[(nlags + init): (n-1)],
+                           S2 = spawners[(nlags + init - 1): (n-2)],
+                           s3 = spawners[(nlags + init - 2): (n-3)])
+      }
+      if(length(beta$b) == 1){
+        lagS <- data.frame(S0 = spawners[(nlags + init + 1): n])
+      }
+      # Calculated predicted recruitment and returns based on Larkin model and
+      # assumed age proportions, p_prime, over all posterior draws of alpha &
+      # beta
+      predR_prime_t <- matrix(nrow = dim(betaDraws)[1], ncol = (n - nlags))
+      predR_t <- matrix(nrow = dim(betaDraws)[1], ncol = (n - nlags))
+
+      for (k in 1:dim(betaDraws)[1]){
+        predR_prime_t[k,] <- as.numeric(exp(alphaDraws[k,])) * lagS$S0 *
+          as.numeric(exp (as.matrix(lagS[,1:dim(betaDraws)[2]])  %*%
+                            as.numeric(betaDraws[k,]) ) )
+      }
+
+      for (k in 1:dim(betaDraws)[1]){
+         for (j in 6:(n - nlags)){
+          predR_t[k,j] <- p_prime[1] * predR_prime_t[k, j-3] +
+            p_prime[2] * predR_prime_t[k, j-4] +
+            p_prime[3] * predR_prime_t[k, j-5]
+        }
+      }
+
+      # To do: Add predictions if model has env covariates
+      if (length(prior_mean_gamma) > 0) {
+          gamma <- samples$draws(variables = "gamma")
+          print("Warning: predictions do not yet incorporate env covariates")
+      }
+
       # Define output
       output <- list(
         forecasts = forecasts,
         forecasts_R_t = forecasts_R_t,
+        predR_prime_t = predR_prime_t,
+        predR_t = predR_t,
         lp__ = lp__,
         alpha = alpha,
         beta = beta,
@@ -551,11 +612,13 @@ forecast <- function (data,
       alpha <- tibble::tibble(n = 1:length(al), optim = al) %>%
         dplyr::mutate(index = index) %>%
         dplyr::relocate(.data$index, .before = 1) %>%
+        dplyr::mutate(median = al) %>%
         dplyr::bind_cols(id_columns) %>%
         dplyr::relocate(colnames(id_columns), .before = 1)
       beta <- tibble::tibble(b = 1:length(be), optim = be) %>%
         dplyr::mutate(index = index) %>%
         dplyr::relocate(.data$index, .before = 1) %>%
+        dplyr::mutate(median = be) %>%
         dplyr::bind_cols(id_columns) %>%
         dplyr::relocate(colnames(id_columns), .before = 1)
       sigma <- tibble::tibble(optim = si) %>%
@@ -587,10 +650,43 @@ forecast <- function (data,
         gamma <- tibble::tibble()
       }
 
+
+      n <- length(spawners)-1 # last year is forecasted, not predicted
+      nlags <- length(beta$b) - 1 # Number of lags in Larkin model (for predR)
+      init <- 0#5 # Max generation length = #yrs to skip at the beginning because of initialization
+      if(length(beta$b) > 1){
+        lagS <- data.frame(S0 = spawners[(nlags + init + 1): n],
+                           S1 = spawners[(nlags + init): (n-1)],
+                           S2 = spawners[(nlags + init - 1): (n-2)],
+                           s3 = spawners[(nlags + init - 2): (n-3)])
+      }
+      if(length(beta$b) == 1){
+        lagS <- data.frame(S0 = spawners[(init + 1): n])
+      }
+
+      # predict Recruitement from the Larkin model starting in lag year (3+1)
+      if(length(beta$b)>1){
+        predR_prime_t <- exp(alpha$optim)[(nlags+1):n] * lagS$S0 *
+          exp ( as.matrix(lagS)[,1:length(beta$b)]  %*% beta$optim )
+      } else {
+        # Ricker model starting in year 1
+        predR_prime_t <- exp(alpha$optim) * lagS$S0 * exp ( lagS$S0  * beta$optim )
+      }
+      predR_prime_t <- as.vector(predR_prime_t )
+
+      predR_t <- NA
+      for (j in 6:length(predR_prime_t)){
+        predR_t[j] <- p_prime[1] * predR_prime_t[j-3] +
+          p_prime[2] * predR_prime_t[j-4] +
+          p_prime[3] * predR_prime_t[j-5]
+      }
+
       # Define output
       output <- list(
         forecasts = forecasts,
         forecasts_R_t = forecasts_R_t,
+        predR_prime_t = predR_prime_t,
+        predR_t = predR_t,
         lp__ = lp__,
         alpha = alpha,
         beta = beta,
