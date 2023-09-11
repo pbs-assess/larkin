@@ -130,9 +130,9 @@ generated quantities {
   if (G > 0) {
     for (g in 1:G) {
       mean_y_forecast += gamma[g] * environs[N, g];
-      mean_y_forecast_Nmthree += gamma[g] * environs[N, g];
-      mean_y_forecast_Nmfour += gamma[g] * environs[N, g];
-      mean_y_forecast_Nmfive += gamma[g] * environs[N, g];
+      mean_y_forecast_Nmthree += gamma[g] * environs[N - 3, g];
+      mean_y_forecast_Nmfour += gamma[g] * environs[N - 4, g];
+      mean_y_forecast_Nmfive += gamma[g] * environs[N - 5, g];
     }
   }
   // Generate y forecast

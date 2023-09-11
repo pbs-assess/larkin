@@ -145,7 +145,7 @@ forecast <- function (data,
     # Transpose outputs
     outputs <- purrr::transpose(outputs)
     # Define forecasts
-    forecasts <- dplyr::bind_rows(outputs$forecasts) %>%
+    forecasts_R_prime_t <- dplyr::bind_rows(outputs$forecasts_R_prime_t) %>%
       # dplyr::arrange(.data$index) %>%
       dplyr::ungroup()
     # Define lp__
@@ -172,7 +172,10 @@ forecast <- function (data,
       dplyr::ungroup()
     # Define output
     output <- list(
-      forecasts = forecasts,
+      forecasts_R_prime_t = forecasts_R_prime_t,
+      forecasts_R_t = forecasts_R_t,
+      predR_prime_t = predR_prime_t,
+      predR_t = predR_t,
       lp__ = lp__,
       alpha = alpha,
       beta = beta,
@@ -247,7 +250,8 @@ forecast <- function (data,
         ...
       )
 
-      # Calculate posterior for total returns assuming ages in p_prime
+      # Calculate posterior for forecast of total returns assuming ages in
+      # p_prime
       forecasts_Nmin3 <- data.frame(samples$draws(variables="forecast_Nmthree"))
       forecasts_Nmin4 <- data.frame(samples$draws(variables="forecast_Nmfour"))
       forecasts_Nmin5 <- data.frame(samples$draws(variables="forecast_Nmfive"))
@@ -270,24 +274,23 @@ forecast <- function (data,
         dplyr::ungroup()
       # Define maximum rhat
       max_rhat <- max(summaries$rhat, na.rm = TRUE)
-      # Define minumum ess
+      # Define minimum ess
       min_ess_bulk <- min(summaries$ess_bulk, na.rm = TRUE)
       min_ess_tail <- min(summaries$ess_tail, na.rm = TRUE)
-      # Define forecasts
-      forecasts <- samples %>%
+      # Define forecasts of recruitment, where spread_draws(forecasts) comes
+      # from stan output of recruitment forecasts
+      forecasts_R_prime_t <- samples %>%
         tidybayes::spread_draws(forecast) %>%
         tidybayes::summarise_draws() %>%
         dplyr::ungroup() %>%
-        dplyr::select(.data$mean:.data$q95) %>%
-        # dplyr::mutate(forecast = .data$mean) %>%
+        dplyr::select(mean:q95) %>%
         dplyr::mutate(observed = recruits[index]) %>%
         dplyr::mutate(index = index) %>%
         dplyr::mutate(max_rhat = max_rhat) %>%
         dplyr::mutate(min_ess_bulk = min_ess_bulk) %>%
         dplyr::mutate(min_ess_tail = min_ess_tail) %>%
-        # dplyr::relocate(.data$forecast, .before = 1) %>%
-        dplyr::relocate(.data$observed, .before = 1) %>%
-        dplyr::relocate(.data$index, .before = 1) %>%
+        dplyr::relocate(observed, .before = 1) %>%
+        dplyr::relocate(index, .before = 1) %>%
         dplyr::bind_cols(id_values) %>%
         dplyr::relocate(colnames(id_values), .before = 1) %>%
         dplyr::bind_cols(id_columns) %>%
@@ -471,10 +474,8 @@ forecast <- function (data,
 
       # Define output
       output <- list(
-        forecasts = forecasts,
+        forecasts_R_prime_t = forecasts_R_prime_t,
         forecasts_R_t = forecasts_R_t,
-        predR_prime_t = predR_prime_t,
-        predR_t = predR_t,
         lp__ = lp__,
         alpha = alpha,
         beta = beta,
@@ -572,7 +573,7 @@ forecast <- function (data,
         dplyr::relocate(.data$index, .before = 1) %>%
         dplyr::bind_cols(id_columns) %>%
         dplyr::relocate(colnames(id_columns), .before = 1)
-      forecasts <- tibble::tibble(optim = fo) %>%
+      forecasts_R_prime_t <- tibble::tibble(optim = fo) %>%
         dplyr::mutate(observed = recruits[index]) %>%
         dplyr::mutate(index = index) %>%
         dplyr::relocate(.data$observed, .before = 1) %>%
@@ -683,7 +684,7 @@ forecast <- function (data,
 
       # Define output
       output <- list(
-        forecasts = forecasts,
+        forecasts_R_prime_t = forecasts_R_prime_t,
         forecasts_R_t = forecasts_R_t,
         predR_prime_t = predR_prime_t,
         predR_t = predR_t,
