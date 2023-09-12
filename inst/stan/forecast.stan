@@ -7,6 +7,8 @@ data {
   vector<lower=0>[N] recruits; // Recruitment abundance
   vector<lower=0>[N] spawners; // Spawning abundance
   array[G ? N : 0, G] real environs; // Environmental indices
+  // condition ? result_if_true : result_if_false
+
   // Prior means
   real prior_mean_alpha;
   vector[B] prior_mean_beta;
