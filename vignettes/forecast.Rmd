@@ -28,9 +28,9 @@ if (FALSE) {
   spawners <- "spawners"
   p_prime <- c(0.003, 0.917, 0.080)
   environs <- character(0)#c("flow", "pdo", "npgo_annual") # character(0)
-  run_stan <- TRUE
+  run_stan <- FALSE#TRUE
   prior_mean_alpha <- 2
-  prior_mean_beta <- c(-8, -6, -4, -2) # c(-4)
+  prior_mean_beta <- c(-8, -6, -4, -2) # c(-4) #flips btwn larkin & ricker
   prior_mean_gamma <- numeric(0)#rep(0, 3) # numeric(0)
   prior_mean_sigma <- 0.5
   prior_mean_omega <- 0#0.1 # 0
