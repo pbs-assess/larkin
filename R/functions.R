@@ -554,8 +554,8 @@ forecast <- function (data,
       # Fit with optimize function (MLE)
       fit_optim <- mod$optimize(
         data = stan_data,
-        refresh = 0
-        # seed = 123
+        refresh = 0,
+        seed = 123
       )
 
       # Get optim outputs
