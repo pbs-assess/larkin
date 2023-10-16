@@ -557,170 +557,186 @@ forecast <- function (data,
         refresh = 0
         # seed = 123
       )
+      if(fit_optim$return_codes() == 0){
+        # Get optim outputs
+        fo.ind <- which(fit_optim$summary()$variable == "forecast")
+        fo <- fit_optim$summary()$estimate[fo.ind]
+        fo3.ind <- which(fit_optim$summary()$variable == "forecast_Nmthree")
+        fo3 <- fit_optim$summary()$estimate[fo3.ind]
+        fo4.ind <- which(fit_optim$summary()$variable == "forecast_Nmfour")
+        fo4 <- fit_optim$summary()$estimate[fo4.ind]
+        fo5.ind <- which(fit_optim$summary()$variable == "forecast_Nmfive")
+        fo5 <- fit_optim$summary()$estimate[fo5.ind]
 
-      # Get optim outputs
-      fo.ind <- which(fit_optim$summary()$variable == "forecast")
-      fo <- fit_optim$summary()$estimate[fo.ind]
-      fo3.ind <- which(fit_optim$summary()$variable == "forecast_Nmthree")
-      fo3 <- fit_optim$summary()$estimate[fo3.ind]
-      fo4.ind <- which(fit_optim$summary()$variable == "forecast_Nmfour")
-      fo4 <- fit_optim$summary()$estimate[fo4.ind]
-      fo5.ind <- which(fit_optim$summary()$variable == "forecast_Nmfive")
-      fo5 <- fit_optim$summary()$estimate[fo5.ind]
+        foR <- fo3 * p_prime[1] +
+          fo4 * p_prime[2] +
+          fo5 * p_prime[3]
 
-      foR <- fo3 * p_prime[1] +
-        fo4 * p_prime[2] +
-        fo5 * p_prime[3]
+        # ob.ind <- which(fit_optim$summary()$variable == "observed")
+        # ob <- fit_optim$summary()$estimate[ob.ind]
+        si.ind <- which(fit_optim$summary()$variable == "sigma")
+        si <- fit_optim$summary()$estimate[si.ind]
+        lp.ind <- which(fit_optim$summary()$variable == "lp__")
+        lp <- fit_optim$summary()$estimate[lp.ind]
+        al.ind <- grep("alpha", fit_optim$summary()$variable)
+        al <- fit_optim$summary()$estimate[al.ind]
+        be.ind <- grep("beta", fit_optim$summary()$variable)
+        be <- fit_optim$summary()$estimate[be.ind]
+        # Placate R-CMD-check
+        n <- NULL
+        b <- NULL
+        g <- NULL
+        o <- NULL
 
-      # ob.ind <- which(fit_optim$summary()$variable == "observed")
-      # ob <- fit_optim$summary()$estimate[ob.ind]
-      si.ind <- which(fit_optim$summary()$variable == "sigma")
-      si <- fit_optim$summary()$estimate[si.ind]
-      lp.ind <- which(fit_optim$summary()$variable == "lp__")
-      lp <- fit_optim$summary()$estimate[lp.ind]
-      al.ind <- grep("alpha", fit_optim$summary()$variable)
-      al <- fit_optim$summary()$estimate[al.ind]
-      be.ind <- grep("beta", fit_optim$summary()$variable)
-      be <- fit_optim$summary()$estimate[be.ind]
-      # Placate R-CMD-check
-      n <- NULL
-      b <- NULL
-      g <- NULL
-      o <- NULL
-
-      lp__ <- tibble::tibble(optim = lp) %>%
-        dplyr::mutate(index = index) %>%
-        dplyr::relocate(.data$index, .before = 1) %>%
-        dplyr::bind_cols(id_columns) %>%
-        dplyr::relocate(colnames(id_columns), .before = 1)
-      forecasts_R_prime_t <- tibble::tibble(optim = fo) %>%
-        dplyr::mutate(observed = recruits[index]) %>%
-        dplyr::mutate(index = index) %>%
-        dplyr::relocate(.data$observed, .before = 1) %>%
-        dplyr::relocate(.data$index, .before = 1) %>%
-        dplyr::bind_cols(id_columns) %>%
-        dplyr::relocate(colnames(id_columns), .before = 1) %>%
-        dplyr::mutate(method = "model") %>%
-        dplyr::mutate(mean = NA) %>%
-        dplyr::mutate(median = fo) %>%
-        dplyr::mutate(sd = NA) %>%
-        dplyr::mutate(mad = NA) %>%
-        dplyr::mutate(q5 = NA) %>%
-        dplyr::mutate(q95 = NA) %>%
-        dplyr::mutate(max_rhat = NA) %>%
-        dplyr::mutate(min_ess_bulk = NA) %>%
-        dplyr::mutate(min_ess_tail = NA)
-
-      forecasts_R_t <- tibble::tibble(optim = foR) %>%
-        dplyr::mutate(observed = recruits[index]) %>%
-        dplyr::mutate(index = index) %>%
-        dplyr::relocate(.data$observed, .before = 1) %>%
-        dplyr::relocate(.data$index, .before = 1) %>%
-        dplyr::bind_cols(id_columns) %>%
-        dplyr::relocate(colnames(id_columns), .before = 1) %>%
-        dplyr::mutate(method = "model") %>%
-        dplyr::mutate(mean = NA) %>%
-        dplyr::mutate(median = foR) %>%
-        dplyr::mutate(sd = NA) %>%
-        dplyr::mutate(mad = NA) %>%
-        dplyr::mutate(q5 = NA) %>%
-        dplyr::mutate(q95 = NA) %>%
-        dplyr::mutate(max_rhat = NA) %>%
-        dplyr::mutate(min_ess_bulk = NA) %>%
-        dplyr::mutate(min_ess_tail = NA)
-
-
-      alpha <- tibble::tibble(n = 1:length(al), optim = al) %>%
-        dplyr::mutate(index = index) %>%
-        dplyr::relocate(.data$index, .before = 1) %>%
-        dplyr::mutate(median = al) %>%
-        dplyr::bind_cols(id_columns) %>%
-        dplyr::relocate(colnames(id_columns), .before = 1)
-      beta <- tibble::tibble(b = 1:length(be), optim = be) %>%
-        dplyr::mutate(index = index) %>%
-        dplyr::relocate(.data$index, .before = 1) %>%
-        dplyr::mutate(median = be) %>%
-        dplyr::bind_cols(id_columns) %>%
-        dplyr::relocate(colnames(id_columns), .before = 1)
-      sigma <- tibble::tibble(optim = si) %>%
-        dplyr::mutate(index = index) %>%
-        dplyr::relocate(.data$index, .before = 1) %>%
-        dplyr::bind_cols(id_columns) %>%
-        dplyr::relocate(colnames(id_columns), .before = 1)
-
-      if (prior_mean_omega > 0 | prior_sd_omega > 0) {
-        om.ind <- grep("omega", fit_optim$summary()$variable)
-        om <- fit_optim$summary()$estimate[om.ind]
-        omega <- tibble::tibble(optim = om) %>%
+        lp__ <- tibble::tibble(optim = lp) %>%
           dplyr::mutate(index = index) %>%
           dplyr::relocate(.data$index, .before = 1) %>%
           dplyr::bind_cols(id_columns) %>%
           dplyr::relocate(colnames(id_columns), .before = 1)
-      } else {
-        omega <- tibble::tibble()
-      }
-      if (length(prior_mean_gamma) > 0) {
-        ga.ind <- grep("gamma", fit_optim$summary()$variable)
-        ga <- fit_optim$summary()$estimate[ga.ind]
-        gamma <- tibble::tibble(g = 1:length(ga), optim = ga) %>%
+        forecasts_R_prime_t <- tibble::tibble(optim = fo) %>%
+          dplyr::mutate(observed = recruits[index]) %>%
+          dplyr::mutate(index = index) %>%
+          dplyr::relocate(.data$observed, .before = 1) %>%
+          dplyr::relocate(.data$index, .before = 1) %>%
+          dplyr::bind_cols(id_columns) %>%
+          dplyr::relocate(colnames(id_columns), .before = 1) %>%
+          dplyr::mutate(method = "model") %>%
+          dplyr::mutate(mean = NA) %>%
+          dplyr::mutate(median = fo) %>%
+          dplyr::mutate(sd = NA) %>%
+          dplyr::mutate(mad = NA) %>%
+          dplyr::mutate(q5 = NA) %>%
+          dplyr::mutate(q95 = NA) %>%
+          dplyr::mutate(max_rhat = NA) %>%
+          dplyr::mutate(min_ess_bulk = NA) %>%
+          dplyr::mutate(min_ess_tail = NA)
+
+        forecasts_R_t <- tibble::tibble(optim = foR) %>%
+          dplyr::mutate(observed = recruits[index]) %>%
+          dplyr::mutate(index = index) %>%
+          dplyr::relocate(.data$observed, .before = 1) %>%
+          dplyr::relocate(.data$index, .before = 1) %>%
+          dplyr::bind_cols(id_columns) %>%
+          dplyr::relocate(colnames(id_columns), .before = 1) %>%
+          dplyr::mutate(method = "model") %>%
+          dplyr::mutate(mean = NA) %>%
+          dplyr::mutate(median = foR) %>%
+          dplyr::mutate(sd = NA) %>%
+          dplyr::mutate(mad = NA) %>%
+          dplyr::mutate(q5 = NA) %>%
+          dplyr::mutate(q95 = NA) %>%
+          dplyr::mutate(max_rhat = NA) %>%
+          dplyr::mutate(min_ess_bulk = NA) %>%
+          dplyr::mutate(min_ess_tail = NA)
+
+
+        alpha <- tibble::tibble(n = 1:length(al), optim = al) %>%
+          dplyr::mutate(index = index) %>%
+          dplyr::relocate(.data$index, .before = 1) %>%
+          dplyr::mutate(median = al) %>%
+          dplyr::bind_cols(id_columns) %>%
+          dplyr::relocate(colnames(id_columns), .before = 1)
+        beta <- tibble::tibble(b = 1:length(be), optim = be) %>%
+          dplyr::mutate(index = index) %>%
+          dplyr::relocate(.data$index, .before = 1) %>%
+          dplyr::mutate(median = be) %>%
+          dplyr::bind_cols(id_columns) %>%
+          dplyr::relocate(colnames(id_columns), .before = 1)
+        sigma <- tibble::tibble(optim = si) %>%
           dplyr::mutate(index = index) %>%
           dplyr::relocate(.data$index, .before = 1) %>%
           dplyr::bind_cols(id_columns) %>%
           dplyr::relocate(colnames(id_columns), .before = 1)
-      } else {
-        gamma <- tibble::tibble()
+
+        if (prior_mean_omega > 0 | prior_sd_omega > 0) {
+          om.ind <- grep("omega", fit_optim$summary()$variable)
+          om <- fit_optim$summary()$estimate[om.ind]
+          omega <- tibble::tibble(optim = om) %>%
+            dplyr::mutate(index = index) %>%
+            dplyr::relocate(.data$index, .before = 1) %>%
+            dplyr::bind_cols(id_columns) %>%
+            dplyr::relocate(colnames(id_columns), .before = 1)
+        } else {
+          omega <- tibble::tibble()
+        }
+        if (length(prior_mean_gamma) > 0) {
+          ga.ind <- grep("gamma", fit_optim$summary()$variable)
+          ga <- fit_optim$summary()$estimate[ga.ind]
+          gamma <- tibble::tibble(g = 1:length(ga), optim = ga) %>%
+            dplyr::mutate(index = index) %>%
+            dplyr::relocate(.data$index, .before = 1) %>%
+            dplyr::bind_cols(id_columns) %>%
+            dplyr::relocate(colnames(id_columns), .before = 1)
+        } else {
+          gamma <- tibble::tibble()
+        }
+
+
+        n <- length(spawners) # last year is forecasted, and is included here
+        nlags <- length(beta$b) # Number of lags in Larkin model (for predR)
+        init <- 0#5 # Max generation length = #yrs to skip at the beginning because of initialization
+        if(length(beta$b) > 1){
+          lagS <- data.frame(S0 = spawners[(nlags + init): n],
+                             S1 = spawners[(nlags + init - 1): (n-1)],
+                             S2 = spawners[(nlags + init - 2): (n-2)],
+                             s3 = spawners[(nlags + init - 3): (n-3)])
+        }
+        if(length(beta$b) == 1){
+          lagS <- data.frame(S0 = spawners[(init + 1): n])
+        }
+
+        # predict Recruitment from the Larkin model starting in lag year (3+1)
+        # Add last year (forecasted here to vector of alpha)
+        alpha.vec <- alpha$optim
+        alpha.vec[n] <- alpha$optim[n-1]
+
+        if(length(beta$b)>1){
+          predR_prime_t <- exp(alpha.vec)[(nlags):n] * lagS$S0 *
+            exp ( as.matrix(lagS)[,1:length(beta$b)]  %*% beta$optim )
+        } else {
+          # Ricker model starting in year 1
+          predR_prime_t <- exp(alpha.vec) * lagS$S0 * exp ( lagS$S0  * beta$optim)
+        }
+        predR_prime_t <- as.vector(predR_prime_t )
+
+        predR_t <- NA
+        for (j in 6:length(predR_prime_t)){
+          predR_t[j] <- p_prime[1] * predR_prime_t[j-3] +
+            p_prime[2] * predR_prime_t[j-4] +
+            p_prime[3] * predR_prime_t[j-5]
+        }
+
+        # Define output
+        output <- list(
+          forecasts_R_prime_t = forecasts_R_prime_t,
+          forecasts_R_t = forecasts_R_t,
+          predR_prime_t = predR_prime_t,
+          predR_t = predR_t,
+          lp__ = lp__,
+          alpha = alpha,
+          beta = beta,
+          gamma = gamma,
+          sigma = sigma,
+          omega = omega
+        )
+
+      } #End of code
+      if(fit_optim$return_codes() != 0){
+        # Define output
+        output <- list(
+          forecasts_R_prime_t = NA,
+          forecasts_R_t = NA,
+          predR_prime_t = NA,
+          predR_t = NA,
+          lp__ = NA,
+          alpha = NA,
+          beta = NA,
+          gamma = NA,
+          sigma = NA,
+          omega = NA
+        )
       }
-
-
-      n <- length(spawners) # last year is forecasted, and is included here
-      nlags <- length(beta$b) # Number of lags in Larkin model (for predR)
-      init <- 0#5 # Max generation length = #yrs to skip at the beginning because of initialization
-      if(length(beta$b) > 1){
-        lagS <- data.frame(S0 = spawners[(nlags + init): n],
-                           S1 = spawners[(nlags + init - 1): (n-1)],
-                           S2 = spawners[(nlags + init - 2): (n-2)],
-                           s3 = spawners[(nlags + init - 3): (n-3)])
-      }
-      if(length(beta$b) == 1){
-        lagS <- data.frame(S0 = spawners[(init + 1): n])
-      }
-
-      # predict Recruitment from the Larkin model starting in lag year (3+1)
-      # Add last year (forecasted here to vector of alpha)
-      alpha.vec <- alpha$optim
-      alpha.vec[n] <- alpha$optim[n-1]
-
-      if(length(beta$b)>1){
-        predR_prime_t <- exp(alpha.vec)[(nlags):n] * lagS$S0 *
-          exp ( as.matrix(lagS)[,1:length(beta$b)]  %*% beta$optim )
-      } else {
-        # Ricker model starting in year 1
-        predR_prime_t <- exp(alpha.vec) * lagS$S0 * exp ( lagS$S0  * beta$optim)
-      }
-      predR_prime_t <- as.vector(predR_prime_t )
-
-      predR_t <- NA
-      for (j in 6:length(predR_prime_t)){
-        predR_t[j] <- p_prime[1] * predR_prime_t[j-3] +
-          p_prime[2] * predR_prime_t[j-4] +
-          p_prime[3] * predR_prime_t[j-5]
-      }
-
-      # Define output
-      output <- list(
-        forecasts_R_prime_t = forecasts_R_prime_t,
-        forecasts_R_t = forecasts_R_t,
-        predR_prime_t = predR_prime_t,
-        predR_t = predR_t,
-        lp__ = lp__,
-        alpha = alpha,
-        beta = beta,
-        gamma = gamma,
-        sigma = sigma,
-        omega = omega
-      )
-
-    }
+    }# end of runstan
 
   } else {
     stop("index must have length >= 1")
