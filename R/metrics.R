@@ -46,7 +46,7 @@ mre <- function (x, y = NULL, running = FALSE) {
 
   # Replace NaN by NA ----------------------------------------------------------
 
-  value <- dplyr::na_if(value, "NaN")
+  value <- dplyr::na_if(value, NaN)
 
   # Return value ---------------------------------------------------------------
 
@@ -101,7 +101,7 @@ rmse <- function (x, y = NULL, running = FALSE) {
 
   # Replace NaN by NA ----------------------------------------------------------
 
-  value <- dplyr::na_if(value, "NaN")
+  value <- dplyr::na_if(value, NaN)
 
   # Return value ---------------------------------------------------------------
 
