@@ -30,7 +30,7 @@ transformed data {
   vector[I] y = log(recruits[1:I] + fudge) - log(spawners[1:I] + fudge);
   // Timevary indicator
   int<lower=0, upper=1> timevary;
-  if (prior_mean_omega || prior_sd_omega) {
+  if (prior_mean_omega != 0 || prior_sd_omega != 0) {
     timevary = 1;
   } else {
     timevary = 0;
@@ -50,7 +50,7 @@ parameters {
 transformed parameters {
   // Per-capita productivity at low abundance
   vector[I] alpha;
-  if (timevary) {
+  if (timevary != 0) {
     alpha = aleph;
   } else {
     alpha = rep_vector(aleph[1], I);
@@ -81,7 +81,7 @@ model {
   }
   sigma ~ normal(prior_mean_sigma, prior_sd_sigma);
   // Non-centred random walk
-  if (timevary) {
+  if (timevary != 0) {
     // Random walk
     (alpha[2:I] - alpha[1:(I-1)]) ./ omega[1] ~ std_normal();
     // Random walk standard deviation prior
@@ -100,7 +100,7 @@ generated quantities {
   real mean_y_forecast;
   real y_forecast;
   // Initialize
-  if (timevary) {
+  if (timevary != 0) {
     mean_y_forecast = normal_rng(alpha[I], omega)[1];
   } else {
     mean_y_forecast = alpha[1];
